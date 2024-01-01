@@ -4,6 +4,7 @@ using NewSky.API.Services.Interface;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Security.Cryptography;
 
 namespace NewSky.API.Services
 {

@@ -14,6 +14,7 @@ namespace NewSky.API.Mappings
             CreateMap<VoteReward, VoteRewardDto>().ReverseMap();
             CreateMap<RegisterDto, User>();
             CreateMap<User, UserDto>().ReverseMap();
+            CreateMap<User, UserPrivateInfoDto>().ReverseMap();
         }
     }
 }

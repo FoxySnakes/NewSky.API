@@ -23,9 +23,6 @@ namespace NewSky.API.Models
 
         public string UUID { get; set; }
 
-        [Required]
-        public DateTime? Birthday { get; set; }
-
         public string Address { get; set; }
         public string ZipCode { get; set; }
         public string City { get; set; }

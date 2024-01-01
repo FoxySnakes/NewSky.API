@@ -5,6 +5,7 @@ using NewSky.API.Models;
 using NewSky.API.Models.Dto;
 using NewSky.API.Models.Result;
 using NewSky.API.Services.Interface;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace NewSky.API.Controllers
@@ -78,7 +79,7 @@ namespace NewSky.API.Controllers
             else
                 user = await _userManager.FindByNameAsync(model.UsernameOrEmail);
 
-            if(user is not null)
+            if(user != null)
             {
                 var resultLogin = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, true);
 
@@ -116,6 +117,103 @@ namespace NewSky.API.Controllers
         {
             await _signInManager.SignOutAsync();
             return Ok();
+        }
+
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] PasswordDto passwordDto)
+        {
+            var user = await _userService.GetCurrentUserAsync();
+            var changeResult = await _userManager.ChangePasswordAsync(user, passwordDto.OldPassword, passwordDto.NewPassword);
+
+            var result = new AccountManageDto(changeResult.Succeeded, null);
+            if(!changeResult.Succeeded)
+            {
+                result.Error = changeResult.Errors.First().ToString();
+            }
+            return Ok(result);
+        }
+
+        [HttpPost("disable-account")]
+        public async Task<IActionResult> DisableAccount([FromBody] PasswordDto passwordDto)
+        {
+            var user = await _userService.GetCurrentUserAsync();
+            if (user != null)
+            {
+                var resultSignIn = await _signInManager.CheckPasswordSignInAsync(user, passwordDto.OldPassword, false);
+
+                var result = new AccountManageDto(resultSignIn.Succeeded, null);
+                if (resultSignIn.Succeeded)
+                {
+                    user.LockoutEnd = DateTimeOffset.MaxValue;
+                    var updateResult = await _userManager.UpdateAsync(user);
+
+                    if (updateResult.Succeeded)
+                    {
+                        return Ok(result);
+                    }
+                    else
+                    {
+                        result.Success = false;
+                        result.Error = updateResult.Errors.First().ToString();
+                        return Ok(result);
+                    }
+                }
+                else
+                {
+                    result.Success = false;
+                    if(resultSignIn.IsLockedOut)
+                    {
+                        result.Error = "Compte déjà désactivé";
+                    }
+                    else
+                    {
+                        result.Error = "Mot de passe incorrect";
+                    }
+                    return Ok(result);
+                }
+            }
+            return NotFound();
+        }
+
+        [HttpPost("delete-account")]
+        public async Task<IActionResult> DeleteAccount([FromBody] PasswordDto passwordDto)
+        {
+            var user = await _userService.GetCurrentUserAsync();
+            if (user != null)
+            {
+                var resultSignIn = await _signInManager.CheckPasswordSignInAsync(user, passwordDto.OldPassword, false);
+
+                var result = new AccountManageDto(resultSignIn.Succeeded, null);
+                if (resultSignIn.Succeeded)
+                {
+                    var deleteResult = await _userManager.DeleteAsync(user);
+
+                    if (deleteResult.Succeeded)
+                    {
+                        return Ok(result);
+                    }
+                    else
+                    {
+                        result.Success = false;
+                        result.Error = deleteResult.Errors.First().ToString();
+                        return Ok(result);
+                    }
+                }
+                else
+                {
+                    result.Success = false;
+                    if (resultSignIn.IsLockedOut)
+                    {
+                        result.Error = "Compte déjà désactivé";
+                    }
+                    else
+                    {
+                        result.Error = "Mot de passe incorrect";
+                    }
+                    return Ok(result);
+                }
+            }
+            return NotFound();
         }
 
         //[HttpPost("verify-email")]

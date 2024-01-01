@@ -38,5 +38,22 @@ namespace NewSky.API.Controllers
             };
             return Ok(userDto);
         }
+
+        [HttpPost("update")]
+        public async Task<IActionResult> UpdateUser(UserPrivateInfoDto userModel)
+        {
+            var user = await _userService.GetCurrentUserAsync();
+            var mappedUser = _mapper.Map(userModel, user);
+            var result = await _userManager.UpdateAsync(mappedUser);
+            return Ok(result);
+        }
+
+        [HttpGet("personnal-information")]
+        public async Task<IActionResult> GetCurrentUserPersonnalInformationAsync()
+        {
+            var user = await _userService.GetCurrentUserAsync();
+            var userPrivateInfoDto = _mapper.Map<UserPrivateInfoDto>(user);
+            return Ok(userPrivateInfoDto);
+        }
     }
 }

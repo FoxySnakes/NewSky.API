@@ -19,7 +19,7 @@ namespace NewSky.API.Controllers
         {
             HttpResponseMessage response = await _httpClient.GetAsync("https://plugin.tebex.io/listing");
             response.EnsureSuccessStatusCode();
-            string responseBody = await response.Content.ReadFromJsonAsync<Object>();
+            //string responseBody = await response.Content.ReadFromJsonAsync<Object>();
             return Ok();
         }
     }

@@ -25,7 +25,7 @@ namespace NewSky.API.Services
             _userService = userService;
         }
 
-        public async Task<VoteStatusDto> GetVoteStatus(VoteWebSite voteWebsite)
+        public async Task<VoteStatusDto> GetVoteStatus(VoteWebSite voteWebsite, string username)
         {
             var response = new HttpResponseMessage();
             var content = "";
@@ -33,7 +33,6 @@ namespace NewSky.API.Services
             string userIp = _userService.GetCurrentUserIp();
 
             var voteStatus = new VoteStatusDto();
-            var username = _userService.GetCurrentUserName();
             voteStatus.PlayerUsername = username;
             voteStatus.VoteWebSite = voteWebsite;
 
@@ -142,15 +141,15 @@ namespace NewSky.API.Services
             }
         }
 
-        public async Task<bool> TryVoteAsync(VoteWebSite voteWebsite)
+        public async Task<TimeSpan> TryVoteAsync(VoteWebSite voteWebsite, string username)
         {
             var response = new HttpResponseMessage();
             var content = "";
             var jsonContent = new JObject();
             string userIp = _userService.GetCurrentUserIp();
-            var currentUserName = _userService.GetCurrentUserName();
             bool success = false;
             var i = 0;
+            TimeSpan timeLeft = TimeSpan.Zero;
 
             switch (voteWebsite)
             {
@@ -165,7 +164,7 @@ namespace NewSky.API.Services
                         if ((bool)jsonContent["success"] != true)
                         {
                             if (i == 10)
-                                return false;
+                                return timeLeft;
 
                             i++;
                             await Task.Delay(6000);
@@ -173,6 +172,7 @@ namespace NewSky.API.Services
                         else
                         {
                             success = true;
+                            timeLeft = TimeSpan.FromSeconds(int.Parse((string)jsonContent["data"]["next_vote_seconds"]));
                         }
                     }
                     break;
@@ -185,7 +185,7 @@ namespace NewSky.API.Services
                         if (content == "true")
                         {
                             if (i == 10)
-                                return false;
+                                return timeLeft;
 
                             i++;
                             await Task.Delay(6000);
@@ -193,6 +193,7 @@ namespace NewSky.API.Services
                         else
                         {
                             success = true;
+                            timeLeft = TimeSpan.FromSeconds(int.Parse(content));
                         }
                     }
 
@@ -200,7 +201,7 @@ namespace NewSky.API.Services
                 case VoteWebSite.Top_Serveurs:
                     while (success == false)
                     {
-                        response = await _httpClient.GetAsync($"https://api.top-serveurs.net/v1/votes/check?server_token=TTHSXBP2R3HT&playername={currentUserName}");
+                        response = await _httpClient.GetAsync($"https://api.top-serveurs.net/v1/votes/check?server_token=TTHSXBP2R3HT&playername={username}");
                         content = await response.Content.ReadAsStringAsync();
                         jsonContent = JObject.Parse(content);
 
@@ -208,7 +209,7 @@ namespace NewSky.API.Services
                         if (Regex.IsMatch((string)jsonContent["code"], @"^4[0-9]{2}$"))
                         {
                             if (i == 10)
-                                return false;
+                                return timeLeft;
 
                             i++;
                             await Task.Delay(6000);
@@ -216,6 +217,7 @@ namespace NewSky.API.Services
                         else
                         {
                             success = true;
+                            timeLeft = TimeSpan.FromMinutes(int.Parse((string)jsonContent["duration"]));
                         }
                     }
 
@@ -224,10 +226,10 @@ namespace NewSky.API.Services
                     throw new Exception($"This website isn't supported yet by our API");
 
             }
-            var line = await _userNumberVoteRepository.Query().FirstOrDefaultAsync(x => x.Username == currentUserName);
+            var line = await _userNumberVoteRepository.Query().FirstOrDefaultAsync(x => x.Username == username);
             if(line == null)
             {
-                var result = await _userNumberVoteRepository.CreateAsync(new UserNumberVote { Username = currentUserName });
+                var result = await _userNumberVoteRepository.CreateAsync(new UserNumberVote { Username = username });
                 line = result.Entity;
             }
 
@@ -235,7 +237,7 @@ namespace NewSky.API.Services
             line.TotalVotes += 1;
             await _userNumberVoteRepository.UpdateAsync(line, line.Id);
 
-            return true;
+            return timeLeft;
         }
     }
 }

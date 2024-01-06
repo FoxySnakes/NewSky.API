@@ -30,24 +30,17 @@ namespace NewSky.API.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("status")]
-        public async Task<IActionResult> GetAllVoteStatus()
+        [HttpGet("status/{username}")]
+        public async Task<IActionResult> GetAllVoteStatus(string username)
         {
-            var voteStatus1 = await _voteService.GetVoteStatus(VoteWebSite.Serveur_Prive);
-            var voteStatus2 = await _voteService.GetVoteStatus(VoteWebSite.ServeursMinecraft);
-            var voteStatus3 = await _voteService.GetVoteStatus(VoteWebSite.Top_Serveurs);
+            var voteStatus1 = await _voteService.GetVoteStatus(VoteWebSite.Serveur_Prive, username);
+            var voteStatus2 = await _voteService.GetVoteStatus(VoteWebSite.ServeursMinecraft, username);
+            var voteStatus3 = await _voteService.GetVoteStatus(VoteWebSite.Top_Serveurs, username);
 
             var voteStatusList = new List<VoteStatusDto> { voteStatus1, voteStatus2, voteStatus3 };
 
             return Ok(voteStatusList);
-        }
-
-        [HttpGet("status/{voteWebsite}")]
-        public async Task<IActionResult> GetVoteStatusByWebsite(VoteWebSite voteWebsite)
-        {
-            var voteStatus = await _voteService.GetVoteStatus(voteWebsite);
-            return Ok(voteStatus);
-        }
+        } 
 
         [HttpGet("stats")]
         public async Task<IActionResult> GetServerStats(VoteWebSite voteWebSite)
@@ -75,14 +68,24 @@ namespace NewSky.API.Controllers
         {
             var ranking = await _userNumberVoteRepository.Query().ToListAsync();
             var userVotesNumber = ranking.Find(x => x.Username == username);
-            var userRanking = new UserNumberVoteDto()
+            var userRanking = new UserNumberVoteDto();
+
+            if (userVotesNumber != null)
             {
-                Username = username,
-                MonthlyVotes = userVotesNumber.MonthlyVotes,
-                TotalVotes = userVotesNumber.TotalVotes,
-                MonthlyPosition = ranking.OrderByDescending(x => x.MonthlyVotes).ToList().IndexOf(userVotesNumber) + 1,
-                TotalPosition = ranking.OrderByDescending(x => x.TotalVotes).ToList().IndexOf(userVotesNumber) + 1,
-            };
+                userRanking.Username = username;
+                userRanking.MonthlyVotes = userVotesNumber.MonthlyVotes;
+                userRanking.TotalVotes = userVotesNumber.TotalVotes;
+                userRanking.MonthlyPosition = ranking.OrderByDescending(x => x.MonthlyVotes).ToList().IndexOf(userVotesNumber) + 1;
+                userRanking.TotalPosition = ranking.OrderByDescending(x => x.TotalVotes).ToList().IndexOf(userVotesNumber) + 1;
+            }
+            else
+            {
+                userRanking.Username = username;
+                userRanking.MonthlyVotes = 0;
+                userRanking.TotalVotes = 0;
+                userRanking.MonthlyPosition = ranking.Where(x => x.MonthlyVotes > 0).Count() + 1;
+                userRanking.TotalPosition = ranking.Where(x => x.TotalVotes > 0).Count() + 1;
+            }
 
             return Ok(userRanking);
         }
@@ -95,10 +98,10 @@ namespace NewSky.API.Controllers
             return Ok(rewardsDto);
         }
 
-        [HttpGet("{voteWebsite}")]
-        public async Task<IActionResult> TryVoteAsync(VoteWebSite voteWebsite)
+        [HttpGet("{voteWebsite}/{username}")]
+        public async Task<IActionResult> TryVoteAsync(VoteWebSite voteWebsite, string username)
         {
-            var result = await _voteService.TryVoteAsync(voteWebsite);
+            var result = await _voteService.TryVoteAsync(voteWebsite, username);
 
             return Ok(result);
         }

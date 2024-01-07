@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using NewSky.API.Models;
 using NewSky.API.Services.Interface;
 using Newtonsoft.Json.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 
@@ -44,11 +46,15 @@ namespace NewSky.API.Services
         public async Task<string> GetUserUUIDAsync(string username)
         {
             var response = await _httpClient.GetAsync($"https://api.mojang.com/users/profiles/minecraft/{username}");
-            response.EnsureSuccessStatusCode();
+            if(response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return string.Empty;
+            }
 
             var content = await response.Content.ReadAsStringAsync();
-            var jsonContent = JObject.Parse(content);
-            return jsonContent["id"].ToString();
+            var jsonContent = JObject.Parse(content)["id"].ToString();
+            var uuid = jsonContent.Insert(8, "-").Insert(13, "-").Insert(18, "-").Insert(23, "-");
+            return uuid;
         }
     }
 }

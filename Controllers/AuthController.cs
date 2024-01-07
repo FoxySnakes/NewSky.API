@@ -36,12 +36,18 @@ namespace NewSky.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto model)
         {
+            var result = new RegisterResult();
             var newUser = _mapper.Map<User>(model);
             newUser.UUID = await _userService.GetUserUUIDAsync(model.UserName);
+            if(newUser.UUID == string.Empty)
+            {
+                result.Errors.Add(new IdentityError() { Code = "400", Description = "Compte Mojang Introuvable" });
+                return Ok(result);
+            }
 
             var resultCreation = await _userManager.CreateAsync(newUser);
 
-            var result = new RegisterResult();
+
 
             if (resultCreation.Succeeded)
             {

@@ -68,7 +68,7 @@ namespace NewSky.API.Services
 
                     break;
                 case VoteWebSite.Top_Serveurs:
-                    response = await _httpClient.GetAsync($"https://api.top-serveurs.net/v1/votes/check?server_token=TTHSXBP2R3HT&playername={username}");
+                    response = await _httpClient.GetAsync($"https://api.top-serveurs.net/v1/votes/check-ip?server_token=TTHSXBP2R3HT&ip={userIp}");
 
                     content = await response.Content.ReadAsStringAsync();
                     jsonContent = JObject.Parse(content);

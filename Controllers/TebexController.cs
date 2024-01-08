@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NewSky.API.Services.Interface;
 
 namespace NewSky.API.Controllers
 {
@@ -6,21 +7,18 @@ namespace NewSky.API.Controllers
     [Route("[controller]")]
     public class TebexController : Controller
     {
-        private readonly HttpClient _httpClient;
-        public TebexController(HttpClient httpClient)
+        private readonly ITebexService _tebexService;
+        public TebexController(ITebexService tebexService)
         {
-            _httpClient = httpClient;
-            _httpClient.DefaultRequestHeaders.Add("X-Tebex-Secret", "3421979d0b799fe1733ce64ad591b28d3bc86b77");
-
+            _tebexService = tebexService;
         }
 
         [HttpGet("listing")]
         public async Task<IActionResult> GetListingAsync()
         {
-            HttpResponseMessage response = await _httpClient.GetAsync("https://plugin.tebex.io/listing");
-            response.EnsureSuccessStatusCode();
-            //string responseBody = await response.Content.ReadFromJsonAsync<Object>();
-            return Ok();
+            var listing = await _tebexService.GetListingAsync();
+            
+            return Ok(listing);
         }
     }
 }

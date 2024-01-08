@@ -92,4 +92,5 @@ void InstantiateServices(IServiceCollection services)
     services.AddTransient<IUserService, UserService>();
     services.AddTransient<IEmailSender, EmailSender>();
     services.AddTransient<ITokenService, TokenService>();
+    services.AddTransient<ITebexService, TebexService>();
 }

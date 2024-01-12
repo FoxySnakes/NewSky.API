@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
-using NewSky.API.Models;
+using NewSky.API.Models.Db;
 using NewSky.API.Models.Dto;
 
 namespace NewSky.API.Mappings
@@ -14,7 +14,6 @@ namespace NewSky.API.Mappings
             CreateMap<VoteReward, VoteRewardDto>().ReverseMap();
             CreateMap<RegisterDto, User>();
             CreateMap<User, UserDto>().ReverseMap();
-            CreateMap<UpdateEmail, User>();
         }
     }
 }

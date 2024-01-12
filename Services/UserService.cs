@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using NewSky.API.Models;
+using Microsoft.EntityFrameworkCore;
+using NewSky.API.Models.Db;
 using NewSky.API.Services.Interface;
 using Newtonsoft.Json.Linq;
 using System.Net;
@@ -12,20 +13,23 @@ namespace NewSky.API.Services
     public class UserService : IUserService
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly UserManager<User> _userManager;
+        private readonly IRepository<User> _userRepository;
         private readonly HttpClient _httpClient;
 
         public UserService(IHttpContextAccessor httpContextAccessor,
-                           UserManager<User> userManager,
+                           IRepository<User> userRepository,
                            HttpClient httpClient)
         {
             _httpContextAccessor = httpContextAccessor;
-            _userManager = userManager;
+            _userRepository = userRepository;
             _httpClient = httpClient;
         }
         public async Task<User> GetCurrentUserAsync()
         {
-            return await _userManager.FindByNameAsync(_httpContextAccessor.HttpContext.User.Identity.Name);
+            var x = _httpContextAccessor.HttpContext.User.Identity.Name;
+            return await _userRepository.Query().Include(x => x.Roles).ThenInclude(x => x.Role)
+                                                .Include(x => x.Permissions).ThenInclude(x => x.Permission)
+                                                .FirstOrDefaultAsync(x => x.UserName == _httpContextAccessor.HttpContext.User.Identity.Name);
         }
 
         public string GetCurrentUserName()
@@ -52,8 +56,10 @@ namespace NewSky.API.Services
             }
 
             var content = await response.Content.ReadAsStringAsync();
-            var jsonContent = JObject.Parse(content)["id"].ToString();
-            var uuid = jsonContent.Insert(8, "-").Insert(13, "-").Insert(18, "-").Insert(23, "-");
+            var jsonContent = JObject.Parse(content);
+
+            var x = jsonContent["id"].ToString();
+            var uuid = x.Insert(8, "-").Insert(13, "-").Insert(18, "-").Insert(23, "-");
             return uuid;
         }
     }

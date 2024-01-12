@@ -2,82 +2,89 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using NewSky.API.Models.Db;
 using System.Reflection;
 
 namespace NewSky.API.Models
 {
-    public class NewSkyDbContext : IdentityDbContext<User>
+    public class NewSkyDbContext : DbContext
     {
-        public NewSkyDbContext(DbContextOptions<NewSkyDbContext> dbContextOptions): base(dbContextOptions)
+        public NewSkyDbContext(DbContextOptions<NewSkyDbContext> dbContextOptions) : base(dbContextOptions)
         {
-            
+
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Utilise la réflexion pour obtenir tous les types de modèles
             var modelTypes = Assembly.GetExecutingAssembly().GetTypes()
                 .Where(type => !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(EntityBase).IsAssignableFrom(type));
 
-            // Ajoute chaque type de modèle au contexte
             foreach (var modelType in modelTypes)
             {
                 modelBuilder.Entity(modelType);
             }
 
+            // User
             modelBuilder.Entity<User>().HasIndex(x => x.UserName).IsUnique();
             modelBuilder.Entity<User>().HasIndex(x => x.Email).IsUnique();
-            modelBuilder.Entity<User>().HasIndex(x => x.PhoneNumber).IsUnique();
+            modelBuilder.Entity<User>().HasIndex(x => x.UUID).IsUnique();
+
+            // Role
+            modelBuilder.Entity<Role>().HasIndex(x => x.Level).IsUnique();
+
+            // User Permission 
+            modelBuilder.Entity<UserPermission>()
+                .HasKey(x => new { x.UserId, x.PermissionId });
+
+            modelBuilder.Entity<UserPermission>()
+                .HasOne(x => x.User)
+                .WithMany(u => u.Permissions)
+                .HasForeignKey(x => x.UserId);
+
+            modelBuilder.Entity<UserPermission>()
+                .HasOne(x => x.Permission)
+                .WithMany()
+                .HasForeignKey(x => x.PermissionId);
+
+            // Role Permission
+            modelBuilder.Entity<RolePermission>()
+                .HasKey(x => new { x.RoleId, x.PermissionId });
+
+            modelBuilder.Entity<RolePermission>()
+                .HasOne(x => x.Role)
+                .WithMany(u => u.Permissions)
+                .HasForeignKey(x => x.RoleId);
+
+            modelBuilder.Entity<UserPermission>()
+                .HasOne(x => x.Permission)
+                .WithMany()
+                .HasForeignKey(x => x.PermissionId);
+
+            // User Role
+            modelBuilder.Entity<UserRole>()
+                .HasKey(x => new { x.UserId, x.RoleId });
+
+            modelBuilder.Entity<UserRole>()
+                .HasOne(x => x.User)
+                .WithMany(u => u.Roles)
+                .HasForeignKey(x => x.RoleId);
+
+            modelBuilder.Entity<UserRole>()
+                .HasOne(x => x.Role)
+                .WithMany()
+                .HasForeignKey(x => x.RoleId);
+
+            // Vote Reward
             modelBuilder.Entity<VoteReward>().HasIndex(x => x.Position).IsUnique();
-
-
 
             SeedData(modelBuilder);
         }
 
         private void SeedData(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<IdentityRole>().HasData(new List<IdentityRole>()
-            {
-                new IdentityRole()
-                {
-                    Id = Role.Player,
-                    Name = Role.Player,
-                    NormalizedName = Role.Player,
-                },
-                new IdentityRole()
-                {
-                    Id = Role.Helper,
-                    Name = Role.Helper,
-                    NormalizedName = Role.Helper,
-                },
-                new IdentityRole()
-                {
-                    Id = Role.Moderator,
-                    Name = Role.Moderator,
-                    NormalizedName = Role.Moderator
-                },
-                new IdentityRole()
-                {
-                    Id = Role.Admin,
-                    Name = Role.Admin,
-                    NormalizedName = Role.Admin
-                },
-                new IdentityRole()
-                {
-                    Id = Role.SuperAdmin,
-                    Name = Role.SuperAdmin,
-                    NormalizedName = Role.SuperAdmin
-                },
-                new IdentityRole()
-                {
-                    Id = Role.Developer,
-                    Name = Role.Developer,
-                    NormalizedName = Role.Developer
-                }
-            });
+
         }
     }
 }

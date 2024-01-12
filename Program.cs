@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using NewSky.API.Middleware;
 using NewSky.API.Models;
+using NewSky.API.Models.Db;
 using NewSky.API.Services;
 using NewSky.API.Services.Interface;
 using System.Text;
@@ -46,21 +47,6 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddDbContext<NewSkyDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("NewSkyConnectionString")));
-builder.Services.AddIdentity<User, IdentityRole>()
-    .AddEntityFrameworkStores<NewSkyDbContext>()
-    .AddDefaultTokenProviders();
-
-builder.Services.Configure<IdentityOptions>(options =>
-{
-    options.Password.RequireDigit = false;
-    options.Password.RequireLowercase = false;
-    options.Password.RequireUppercase = false;
-    options.Password.RequiredLength = 8;
-    options.Password.RequireNonAlphanumeric = false;
-    options.Lockout.MaxFailedAccessAttempts = 3;
-    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
-    options.User.RequireUniqueEmail = true;
-});
 
 var app = builder.Build();
 
@@ -90,7 +76,7 @@ void InstantiateServices(IServiceCollection services)
     services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
     services.AddTransient<IVoteService, VoteService>();
     services.AddTransient<IUserService, UserService>();
-    services.AddTransient<IEmailSender, EmailSender>();
-    services.AddTransient<ITokenService, TokenService>();
+    services.AddTransient<ISecurityService, SecurityService>();
     services.AddTransient<ITebexService, TebexService>();
+    services.AddTransient<IAuthService, AuthService>();
 }

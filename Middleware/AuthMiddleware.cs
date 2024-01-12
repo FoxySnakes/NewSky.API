@@ -2,29 +2,35 @@
 using NewSky.API.Models;
 using NewSky.API.Services.Interface;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace NewSky.API.Middleware
 {
     public class AuthMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly ITokenService _tokenService;
+        private readonly ISecurityService _securityService;
 
         public AuthMiddleware(
             RequestDelegate next,
-            ITokenService tokenService)
+            ISecurityService securityService)
         {
             _next = next;
-            _tokenService = tokenService;
+            _securityService = securityService;
         }
 
         public async Task Invoke(HttpContext context)
         {
             var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-
             if (token != null)
             {
-                var principal = _tokenService.GetPrincipalClaims(token);
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var jwtToken = tokenHandler.ReadJwtToken(token);
+
+                var claims = jwtToken.Claims;
+
+                var identity = new ClaimsIdentity(claims);
+                var principal = new ClaimsPrincipal(identity);
                 context.User = principal;
             }
 

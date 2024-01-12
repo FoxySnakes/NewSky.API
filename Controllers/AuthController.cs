@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using NewSky.API.Models;
+using Microsoft.EntityFrameworkCore;
+using NewSky.API.Models.Db;
 using NewSky.API.Models.Dto;
 using NewSky.API.Models.Result;
 using NewSky.API.Services.Interface;
@@ -14,23 +15,23 @@ namespace NewSky.API.Controllers
     [Route("[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<User> _userManager;
         private readonly IMapper _mapper;
         private readonly IUserService _userService;
-        private readonly SignInManager<User> _signInManager;
-        private readonly ITokenService _tokenService;
+        private readonly ISecurityService _securityService;
+        private readonly IRepository<User> _userRepository;
+        private readonly IAuthService _authService;
 
-        public AuthController(UserManager<User> userManager,
-                              IMapper mapper,
+        public AuthController(IMapper mapper,
                               IUserService userService,
-                              SignInManager<User> signInManager,
-                              ITokenService tokenService)
+                              ISecurityService securityService,
+                              IRepository<User> userRepository,
+                              IAuthService authService)
         {
-            _userManager = userManager;
             _mapper = mapper;
             _userService = userService;
-            _signInManager = signInManager;
-            _tokenService = tokenService;
+            _securityService = securityService;
+            _userRepository = userRepository;
+            _authService = authService;
         }
 
         [HttpPost("register")]
@@ -41,33 +42,28 @@ namespace NewSky.API.Controllers
             newUser.UUID = await _userService.GetUserUUIDAsync(model.UserName);
             if(newUser.UUID == string.Empty)
             {
-                result.Errors.Add(new IdentityError() { Code = "400", Description = "Compte Mojang Introuvable" });
+                result.Errors.Add("Compte Mojang Introuvable");
                 return Ok(result);
             }
+            newUser.PasswordHash = _securityService.HashPassword(model.Password);
+            var resultCreation = await _userRepository.CreateAsync(newUser);
 
-            var resultCreation = await _userManager.CreateAsync(newUser);
 
 
-
-            if (resultCreation.Succeeded)
+            if (resultCreation.IsSuccess)
             {
-                await _userManager.AddToRoleAsync(newUser, Role.Player);
-                await _userManager.AddPasswordAsync(newUser, model.Password);
-                await _signInManager.PasswordSignInAsync(newUser, model.Password, false, true);
                 result.User = new UserDto()
                 {
                     UserName = newUser.UserName,
                     UUID = newUser.UUID,
                     Email = newUser.Email,
-                    EmailConfirmed = newUser.EmailConfirmed,
-                    Role = Role.Player
                 };
-                result.Token = _tokenService.GenerateToken(newUser);
+                result.Token = _securityService.GenerateToken(newUser);
             }
 
             else
             {
-                result.Errors = resultCreation.Errors.ToList();
+                result.Errors = resultCreation.Errors.Select(x => x.Message).ToList();
             }
 
             return Ok(result);
@@ -81,31 +77,13 @@ namespace NewSky.API.Controllers
             var result = new LoginResult();
 
             if (regex.IsMatch(model.UsernameOrEmail))
-                user = await _userManager.FindByEmailAsync(model.UsernameOrEmail);
+                user = await _userRepository.Query().FirstOrDefaultAsync(x => x.Email == model.UsernameOrEmail);
             else
-                user = await _userManager.FindByNameAsync(model.UsernameOrEmail);
+                user = await _userRepository.Query().FirstOrDefaultAsync(x => x.UserName == model.UsernameOrEmail);
 
-            if(user != null)
+            if (user != null)
             {
-                var resultLogin = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, true);
-
-                var userRoles = await _userManager.GetRolesAsync(user);
-                result = new LoginResult()
-                {
-                    IsBanned = resultLogin.IsNotAllowed,
-                    IsLocked = resultLogin.IsLockedOut,
-                    IsSuccess = resultLogin.Succeeded,
-                    RequiresTwoFactor = resultLogin.RequiresTwoFactor,
-                    User = new UserDto()
-                    {
-                        UserName = user.UserName,
-                        UUID = user.UUID,
-                        Email = user.Email,
-                        EmailConfirmed = user.EmailConfirmed,
-                        Role = userRoles.FirstOrDefault()
-                    },
-                    Token = _tokenService.GenerateToken(user)
-                };
+                result = await _authService.TryLoginAsync(user, model.Password);
             }
             else
             {
@@ -118,23 +96,16 @@ namespace NewSky.API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("logout")]
-        public async Task<IActionResult> Logout()
-        {
-            await _signInManager.SignOutAsync();
-            return Ok();
-        }
-
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] PasswordDto passwordDto)
         {
             var user = await _userService.GetCurrentUserAsync();
-            var changeResult = await _userManager.ChangePasswordAsync(user, passwordDto.OldPassword, passwordDto.NewPassword);
+            var changeResult = await _authService.ChangePasswordAsync(user, passwordDto.OldPassword, passwordDto.NewPassword);
 
-            var result = new AccountManageDto(changeResult.Succeeded, null);
-            if(!changeResult.Succeeded)
+            var result = new AccountManageDto(changeResult.Success, null);
+            if(!changeResult.Success)
             {
-                result.Error = changeResult.Errors.First().ToString();
+                result.Error = changeResult.Error;
             }
             return Ok(result);
         }
@@ -145,15 +116,15 @@ namespace NewSky.API.Controllers
             var user = await _userService.GetCurrentUserAsync();
             if (user != null)
             {
-                var resultSignIn = await _signInManager.CheckPasswordSignInAsync(user, passwordDto.OldPassword, false);
+                var resultLogin = await _authService.TryLoginAsync(user, passwordDto.OldPassword);
 
-                var result = new AccountManageDto(resultSignIn.Succeeded, null);
-                if (resultSignIn.Succeeded)
+                var result = new AccountManageDto(resultLogin.IsSuccess, null);
+                if (resultLogin.IsSuccess)
                 {
-                    user.LockoutEnd = DateTimeOffset.MaxValue;
-                    var updateResult = await _userManager.UpdateAsync(user);
+                    user.LockoutEnd = TimeSpan.MaxValue;
+                    var updateResult = await _userRepository.UpdateAsync(user, user.Id);
 
-                    if (updateResult.Succeeded)
+                    if (updateResult.IsSuccess)
                     {
                         return Ok(result);
                     }
@@ -167,9 +138,9 @@ namespace NewSky.API.Controllers
                 else
                 {
                     result.Success = false;
-                    if(resultSignIn.IsLockedOut)
+                    if (resultLogin.IsLocked || resultLogin.IsBanned)
                     {
-                        result.Error = "Compte déjà désactivé";
+                        result.NeedDisconnect = true;
                     }
                     else
                     {
@@ -187,14 +158,14 @@ namespace NewSky.API.Controllers
             var user = await _userService.GetCurrentUserAsync();
             if (user != null)
             {
-                var resultSignIn = await _signInManager.CheckPasswordSignInAsync(user, passwordDto.OldPassword, false);
+                var resultLogin = await _authService.TryLoginAsync(user, passwordDto.OldPassword);
 
-                var result = new AccountManageDto(resultSignIn.Succeeded, null);
-                if (resultSignIn.Succeeded)
+                var result = new AccountManageDto(resultLogin.IsSuccess, null);
+                if (resultLogin.IsSuccess)
                 {
-                    var deleteResult = await _userManager.DeleteAsync(user);
+                    var deleteResult = await _userRepository.DeleteAsync(user.Id);
 
-                    if (deleteResult.Succeeded)
+                    if (deleteResult.IsSuccess)
                     {
                         return Ok(result);
                     }
@@ -208,9 +179,9 @@ namespace NewSky.API.Controllers
                 else
                 {
                     result.Success = false;
-                    if (resultSignIn.IsLockedOut)
+                    if (resultLogin.IsLocked || resultLogin.IsBanned)
                     {
-                        result.Error = "Compte déjà désactivé";
+                        result.NeedDisconnect = true;
                     }
                     else
                     {
@@ -222,19 +193,15 @@ namespace NewSky.API.Controllers
             return NotFound();
         }
 
-        //[HttpPost("verify-email")]
-        //public async Task<IActionResult> VerifyEmail([FromQuery] string c, string u)
-        //{
-        //    var user = await _userManager.FindByNameAsync(u);
-        //    var resultConfirm = await _userManager.ConfirmEmailAsync(user, c);
-
-        //    var result = new VerifyEmailResult()
-        //    {
-        //        IsSucceded = resultConfirm.Succeeded,
-        //        Errors = resultConfirm.Errors.ToList()
-        //    };
-
-        //    return Ok(result);
-        //}
+        [HttpGet("admin")]
+        public async Task<IActionResult> IsAdmin()
+        {
+            var user = await _userService.GetCurrentUserAsync();
+            if(user.Permissions.Select(x => x.Permission.Name).Contains(PermissionName.AccessToAdminPanel))
+            {
+                return Ok(true);
+            }
+            return Ok(false);
+        }
     }
 }

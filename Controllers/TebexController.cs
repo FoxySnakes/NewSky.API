@@ -12,13 +12,5 @@ namespace NewSky.API.Controllers
         {
             _tebexService = tebexService;
         }
-
-        [HttpGet("listing")]
-        public async Task<IActionResult> GetListingAsync()
-        {
-            var listing = await _tebexService.GetListingAsync();
-            
-            return Ok(listing);
-        }
     }
 }

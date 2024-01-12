@@ -1,5 +1,4 @@
-﻿using NewSky.API.Models;
-using NewSky.API.Models.Dto;
+﻿using NewSky.API.Models.Dto;
 using NewSky.API.Models.Enums;
 using NewSky.API.Services.Interface;
 using NewSky.API.Helpers;
@@ -7,6 +6,7 @@ using Newtonsoft.Json.Linq;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
+using NewSky.API.Models.Db;
 
 namespace NewSky.API.Services
 {
@@ -88,57 +88,6 @@ namespace NewSky.API.Services
             }
             
             return voteStatus;
-        }
-
-        public async Task<ServerStats> GetServerStats(VoteWebSite voteWebSite)
-        {
-            var response = new HttpResponseMessage();
-            var content = "";
-            var jsonContent = new JObject();
-
-            var serverStats = new ServerStats();
-            serverStats.VoteWebSite = voteWebSite;
-
-            switch (voteWebSite)
-            {
-                case VoteWebSite.Serveur_Prive:
-                    response = await _httpClient.GetAsync($"https://serveur-prive.net/api/v1/servers/CHsmtiT2M8IJeg4/statistics");
-                    content = await response.Content.ReadAsStringAsync();
-                    jsonContent = JObject.Parse(content);
-
-                    serverStats.Position = (int)jsonContent["data"]["position"];
-                    serverStats.TotalVotes = (int)jsonContent["data"]["votes_count"];
-                    serverStats.Rating = (int)jsonContent["data"]["rating"];
-                    serverStats.ServerHaveStats = true;
-
-                    return serverStats;
-
-                case VoteWebSite.ServeursMinecraft:
-                    serverStats.ServerHaveStats = false;
-
-                    return serverStats;
-
-                case VoteWebSite.Top_Serveurs:
-                    response = await _httpClient.GetAsync($"https://api.top-serveurs.net/v1/servers/TTHSXBP2R3HT/full");
-                    content = await response.Content.ReadAsStringAsync();
-                    jsonContent = JObject.Parse(content);
-
-                    var currentMonth = DateTime.Today.ToString("MMMM", CultureInfo.InvariantCulture).ToLower().RemoveDiacritics();
-                    serverStats.TotalVotes = int.Parse(jsonContent["server"]["last_monthly_stat"].First()[$"{currentMonth}_votes"].ToString());
-                    
-                    response = await _httpClient.GetAsync($"https://api.top-serveurs.net/v1/servers/TTHSXBP2R3HT/advices");
-                    content = await response.Content.ReadAsStringAsync();
-                    jsonContent = JObject.Parse(content);
-
-                    serverStats.Rating = (double)jsonContent["advices"].First()["global"];
-                    serverStats.ServerHaveStats = true;
-
-                    return serverStats;
-
-                default:
-                    serverStats.ServerHaveStats = false;
-                    return serverStats;
-            }
         }
 
         public async Task<TimeSpan> TryVoteAsync(VoteWebSite voteWebsite, string username)

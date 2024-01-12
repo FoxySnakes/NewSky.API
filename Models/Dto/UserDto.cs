@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using NewSky.API.Models.Db;
 using System.Data;
 
 namespace NewSky.API.Models.Dto
@@ -9,7 +10,6 @@ namespace NewSky.API.Models.Dto
         public string UserName { get; set; }
         public string UUID { get; set; }
         public string Email { get; set; }
-        public bool EmailConfirmed { get; set; }
-        public string Role { get; set; }
+        public List<string> Roles { get; set; } = new List<string>();
     }
 }

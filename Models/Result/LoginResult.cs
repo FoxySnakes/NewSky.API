@@ -9,7 +9,6 @@ namespace NewSky.API.Models.Result
         public bool IsSuccess { get; set; }
         public bool IsLocked { get; set; } = false;
         public bool IsBanned { get; set; } = false;
-        public bool RequiresTwoFactor { get; set; } = false;
         public string Token { get; set; }
     }
 }

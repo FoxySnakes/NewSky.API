@@ -6,6 +6,8 @@
 
         public string? Error { get; set; }
 
+        public bool NeedDisconnect { get; set; } = false;
+
         public AccountManageDto(bool success, string? error)
         {
             Success = success;

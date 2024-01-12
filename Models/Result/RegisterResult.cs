@@ -8,7 +8,7 @@ namespace NewSky.API.Models.Result
     {
         public UserDto User { get; set; }
         public string Token { get; set; }
-        public List<IdentityError> Errors { get; set; } = new List<IdentityError>();
+        public List<string> Errors { get; set; } = new List<string>();
         public bool IsSuccess => Errors.IsNullOrEmpty();
     }
 }

@@ -1,18 +1,20 @@
-﻿using Microsoft.IdentityModel.Tokens;
-using NewSky.API.Models;
+﻿using AutoMapper;
+using Microsoft.IdentityModel.Tokens;
+using NewSky.API.Models.Db;
+using NewSky.API.Models.Dto;
+using NewSky.API.Models.Result;
 using NewSky.API.Services.Interface;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Security.Cryptography;
 
 namespace NewSky.API.Services
 {
-    public class TokenService : ITokenService
+    public class SecurityService : ISecurityService
     {
         private readonly IConfiguration _config;
 
-        public TokenService(IConfiguration config)
+        public SecurityService(IConfiguration config)
         {
             _config = config;
         }
@@ -58,17 +60,10 @@ namespace NewSky.API.Services
             }
         }
 
-        public ClaimsPrincipal GetPrincipalClaims(string token)
+        public string HashPassword(string password)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var jwtToken = tokenHandler.ReadJwtToken(token);
-
-            var claims = jwtToken.Claims;
-
-            var identity = new ClaimsIdentity(claims);
-            var principal = new ClaimsPrincipal(identity);
-
-            return principal;
+            return BCrypt.Net.BCrypt.HashPassword(password, BCrypt.Net.BCrypt.GenerateSalt(12));
         }
+
     }
 }

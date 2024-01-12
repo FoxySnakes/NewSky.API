@@ -1,4 +1,4 @@
-﻿namespace NewSky.API.Models
+﻿namespace NewSky.API.Models.Db
 {
     public class UserNumberVote : EntityBase
     {

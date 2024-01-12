@@ -6,13 +6,13 @@ namespace NewSky.API.Extensions
 {
     public static class DbOperationExtension
     {
-        public async static Task<PaginedResult<T>> PaginedAsync<T>(this IQueryable<T> list, PaginationParams pagination) where T : class
+        public async static Task<PaginedResult<T>> PaginedAsync<T>(this IQueryable<T> list, int pageSize, int pageNumber) where T : class
         {
             var result = new PaginedResult<T>() { };
             result.TotalCount = list.Count();
-            result.PageNumber = pagination.PageNumber;
-            result.PageSize = pagination.PageSize;
-            result.Items = await list.Skip((pagination.PageNumber - 1) * pagination.PageSize).Take(pagination.PageSize).ToListAsync();  
+            result.PageNumber = pageNumber;
+            result.PageSize = pageSize;
+            result.Items = await list.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();  
 
             return result;
         }

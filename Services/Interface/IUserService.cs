@@ -1,4 +1,4 @@
-﻿using NewSky.API.Models;
+﻿using NewSky.API.Models.Db;
 
 namespace NewSky.API.Services.Interface
 {

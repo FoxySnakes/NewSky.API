@@ -55,7 +55,7 @@ namespace NewSky.API.Services
             return result;
         }
 
-        public async Task<AccountManageDto> ChangePasswordAsync(User user, string oldPassword, string newPassword)
+        public async Task<AccountManageResult> ChangePasswordAsync(User user, string oldPassword, string newPassword)
         {
             var passwordMatch = BCrypt.Net.BCrypt.Verify(oldPassword, user.PasswordHash);
             if (passwordMatch)
@@ -63,9 +63,9 @@ namespace NewSky.API.Services
                 user.PasswordHash = _securityService.HashPassword(newPassword);
                 user.AccessFailedCount = 0;
                 var changeResult = await _userRepository.UpdateAsync(user, user.Id);
-                return new AccountManageDto(changeResult.IsSuccess, null);
+                return new AccountManageResult(changeResult.IsSuccess, null);
             }
-            return new AccountManageDto(false, "Mot de passe incorrect");
+            return new AccountManageResult(false, "Mot de passe incorrect");
         }
     }
 }

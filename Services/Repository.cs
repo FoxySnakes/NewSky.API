@@ -13,13 +13,10 @@ namespace NewSky.API.Services
     public class Repository<T> : IRepository<T> where T : EntityBase
     {
         private readonly NewSkyDbContext _dbContext;
-        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public Repository(NewSkyDbContext dbContext,
-                          IHttpContextAccessor httpContextAccessor)
+        public Repository(NewSkyDbContext dbContext)
         {
             _dbContext = dbContext;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<DbOperationResult<T>> CreateAsync(T entity)

@@ -14,6 +14,11 @@ namespace NewSky.API.Mappings
             CreateMap<VoteReward, VoteRewardDto>().ReverseMap();
             CreateMap<RegisterDto, User>();
             CreateMap<User, UserDto>().ReverseMap();
+            CreateMap<TebexPackageDto, Package>()
+                .ForMember(dest => dest.TebexId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
+            CreateMap<Package, TebexPackageDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.TebexId));
         }
     }
 }

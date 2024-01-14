@@ -21,6 +21,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddControllersWithViews();
+builder.Services.AddMemoryCache();
 
 builder.Services.AddCors(options =>
 {
@@ -33,10 +34,10 @@ builder.Services.AddCors(options =>
     });
 });
 
+
 // Configure Internal Services
-
-
 InstantiateServices(builder.Services);
+
 
 builder.Services.ConfigureApplicationCookie(options =>
 {

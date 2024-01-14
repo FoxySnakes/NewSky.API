@@ -27,12 +27,22 @@ namespace NewSky.API.Models
             }
 
             // User
-            modelBuilder.Entity<User>().HasIndex(x => x.UserName).IsUnique();
-            modelBuilder.Entity<User>().HasIndex(x => x.Email).IsUnique();
-            modelBuilder.Entity<User>().HasIndex(x => x.UUID).IsUnique();
+            modelBuilder.Entity<User>()
+                .HasIndex(x => x.UserName)
+                .IsUnique();
+
+            modelBuilder.Entity<User>()
+                .HasIndex(x => x.Email)
+                .IsUnique();
+
+            modelBuilder.Entity<User>()
+                .HasIndex(x => x.UUID)
+                .IsUnique();
 
             // Role
-            modelBuilder.Entity<Role>().HasIndex(x => x.Level).IsUnique();
+            modelBuilder.Entity<Role>()
+                .HasIndex(x => x.Level)
+                .IsUnique();
 
             // User Permission 
             modelBuilder.Entity<UserPermission>()
@@ -49,8 +59,6 @@ namespace NewSky.API.Models
                 .HasForeignKey(x => x.PermissionId);
 
             // Role Permission
-            modelBuilder.Entity<RolePermission>()
-                .HasKey(x => new { x.RoleId, x.PermissionId });
 
             modelBuilder.Entity<RolePermission>()
                 .HasOne(x => x.Role)
@@ -63,8 +71,6 @@ namespace NewSky.API.Models
                 .HasForeignKey(x => x.PermissionId);
 
             // User Role
-            modelBuilder.Entity<UserRole>()
-                .HasKey(x => new { x.UserId, x.RoleId });
 
             modelBuilder.Entity<UserRole>()
                 .HasOne(x => x.User)
@@ -77,7 +83,30 @@ namespace NewSky.API.Models
                 .HasForeignKey(x => x.RoleId);
 
             // Vote Reward
-            modelBuilder.Entity<VoteReward>().HasIndex(x => x.Position).IsUnique();
+            modelBuilder.Entity<VoteReward>()
+                .HasIndex(x => x.Position)
+                .IsUnique();
+
+            // UserPackage
+
+            modelBuilder.Entity<UserPackage>()
+                .HasOne(x => x.User)
+                .WithMany(x => x.Packages)
+                .HasForeignKey(x => x.UserId);
+
+            modelBuilder.Entity<UserPackage>()
+                .HasOne(x => x.Package)
+                .WithMany()
+                .HasForeignKey(x => x.PackageId);
+
+            // Package
+            modelBuilder.Entity<Package>()
+                .Property(x => x.TotalPrice)
+                .HasPrecision(12,2);
+
+            modelBuilder.Entity<Package>()
+                .HasIndex(x => x.TebexId)
+                .IsUnique();
 
             SeedData(modelBuilder);
         }

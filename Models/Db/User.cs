@@ -8,6 +8,8 @@
 
         public string Email { get; set; }
 
+        public List<UserPackage> Packages { get; set; } = new List<UserPackage>();
+
         public List<UserRole> Roles { get; set; } = new List<UserRole>();
 
         public int RoleId { get; set; }

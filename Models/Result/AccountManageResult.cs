@@ -1,6 +1,6 @@
-﻿namespace NewSky.API.Models.Dto
+﻿namespace NewSky.API.Models.Result
 {
-    public class AccountManageDto
+    public class AccountManageResult
     {
         public bool Success { get; set; }
 
@@ -8,7 +8,7 @@
 
         public bool NeedDisconnect { get; set; } = false;
 
-        public AccountManageDto(bool success, string? error)
+        public AccountManageResult(bool success, string? error)
         {
             Success = success;
             Error = error;

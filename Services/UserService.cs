@@ -29,6 +29,7 @@ namespace NewSky.API.Services
             var x = _httpContextAccessor.HttpContext.User.Identity.Name;
             return await _userRepository.Query().Include(x => x.Roles).ThenInclude(x => x.Role)
                                                 .Include(x => x.Permissions).ThenInclude(x => x.Permission)
+                                                .Include(x => x.Packages).ThenInclude(x => x.Package)
                                                 .FirstOrDefaultAsync(x => x.UserName == _httpContextAccessor.HttpContext.User.Identity.Name);
         }
 

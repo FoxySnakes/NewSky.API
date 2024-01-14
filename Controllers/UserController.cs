@@ -31,6 +31,7 @@ namespace NewSky.API.Controllers
             _roleRepository = roleRepository;
             _mapper = mapper;
         }
+
         [HttpGet("current")]
         public async Task<IActionResult> GetCurrentUserAsync()
         {
@@ -40,8 +41,17 @@ namespace NewSky.API.Controllers
                 UserName = user.UserName,
                 UUID = user.UUID,
                 Email = user.Email,
-                Roles = user.Roles.Select(x => x.Role.Name).ToList()
+                Roles = user.Roles.Select(x => x.Role.Name).ToList(),
+                Permissions = user.Permissions.Select(x => x.Permission.Name).ToList(),
             };
+            foreach(var userpackage in user.Packages)
+            {
+                userDto.Packages.Add(new PackageCartDto()
+                {
+                    TebexPackage = _mapper.Map<TebexPackageDto>(userpackage.Package),
+                    Quantity = userpackage.Quantity,
+                });
+            }
             return Ok(userDto);
         }
 

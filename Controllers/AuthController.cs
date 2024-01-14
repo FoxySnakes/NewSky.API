@@ -102,7 +102,7 @@ namespace NewSky.API.Controllers
             var user = await _userService.GetCurrentUserAsync();
             var changeResult = await _authService.ChangePasswordAsync(user, passwordDto.OldPassword, passwordDto.NewPassword);
 
-            var result = new AccountManageDto(changeResult.Success, null);
+            var result = new AccountManageResult(changeResult.Success, null);
             if(!changeResult.Success)
             {
                 result.Error = changeResult.Error;
@@ -118,7 +118,7 @@ namespace NewSky.API.Controllers
             {
                 var resultLogin = await _authService.TryLoginAsync(user, passwordDto.OldPassword);
 
-                var result = new AccountManageDto(resultLogin.IsSuccess, null);
+                var result = new AccountManageResult(resultLogin.IsSuccess, null);
                 if (resultLogin.IsSuccess)
                 {
                     user.LockoutEnd = TimeSpan.MaxValue;
@@ -160,7 +160,7 @@ namespace NewSky.API.Controllers
             {
                 var resultLogin = await _authService.TryLoginAsync(user, passwordDto.OldPassword);
 
-                var result = new AccountManageDto(resultLogin.IsSuccess, null);
+                var result = new AccountManageResult(resultLogin.IsSuccess, null);
                 if (resultLogin.IsSuccess)
                 {
                     var deleteResult = await _userRepository.DeleteAsync(user.Id);

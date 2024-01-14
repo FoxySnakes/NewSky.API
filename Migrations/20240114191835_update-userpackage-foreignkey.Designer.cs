@@ -12,8 +12,8 @@ using NewSky.API.Models;
 namespace NewSky.API.Migrations
 {
     [DbContext(typeof(NewSkyDbContext))]
-    [Migration("20240112144500_remove-aspnet-identity")]
-    partial class removeaspnetidentity
+    [Migration("20240114191835_update-userpackage-foreignkey")]
+    partial class updateuserpackageforeignkey
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,42 @@ namespace NewSky.API.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("NewSky.API.Models.Db.Package", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ExpirationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("TebexId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("decimal(12,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TebexId")
+                        .IsUnique();
+
+                    b.ToTable("Package");
+                });
 
             modelBuilder.Entity("NewSky.API.Models.Db.Permission", b =>
                 {
@@ -74,18 +110,23 @@ namespace NewSky.API.Migrations
 
             modelBuilder.Entity("NewSky.API.Models.Db.RolePermission", b =>
                 {
-                    b.Property<int>("RoleId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("PermissionId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Id")
+                    b.Property<int>("RoleId")
                         .HasColumnType("int");
 
-                    b.HasKey("RoleId", "PermissionId");
+                    b.HasKey("Id");
 
                     b.HasIndex("PermissionId");
+
+                    b.HasIndex("RoleId");
 
                     b.ToTable("RolePermission");
                 });
@@ -172,6 +213,32 @@ namespace NewSky.API.Migrations
                     b.ToTable("UserNumberVote");
                 });
 
+            modelBuilder.Entity("NewSky.API.Models.Db.UserPackage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("PackageId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PackageId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserPackage");
+                });
+
             modelBuilder.Entity("NewSky.API.Models.Db.UserPermission", b =>
                 {
                     b.Property<int>("UserId")
@@ -192,16 +259,19 @@ namespace NewSky.API.Migrations
 
             modelBuilder.Entity("NewSky.API.Models.Db.UserRole", b =>
                 {
-                    b.Property<int>("UserId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("RoleId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Id")
+                    b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.HasKey("UserId", "RoleId");
+                    b.HasKey("Id");
 
                     b.HasIndex("RoleId");
 
@@ -249,6 +319,25 @@ namespace NewSky.API.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("NewSky.API.Models.Db.UserPackage", b =>
+                {
+                    b.HasOne("NewSky.API.Models.Db.Package", "Package")
+                        .WithMany()
+                        .HasForeignKey("PackageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("NewSky.API.Models.Db.User", "User")
+                        .WithMany("Packages")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Package");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("NewSky.API.Models.Db.UserPermission", b =>
                 {
                     b.HasOne("NewSky.API.Models.Db.Permission", "Permission")
@@ -294,6 +383,8 @@ namespace NewSky.API.Migrations
 
             modelBuilder.Entity("NewSky.API.Models.Db.User", b =>
                 {
+                    b.Navigation("Packages");
+
                     b.Navigation("Permissions");
 
                     b.Navigation("Roles");

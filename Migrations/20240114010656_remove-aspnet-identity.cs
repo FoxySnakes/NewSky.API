@@ -35,6 +35,24 @@ namespace NewSky.API.Migrations
                 name: "AspNetUsers");
 
             migrationBuilder.CreateTable(
+                name: "Package",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TebexId = table.Column<long>(type: "bigint", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TotalPrice = table.Column<decimal>(type: "decimal(12,2)", precision: 12, scale: 2, nullable: false),
+                    ExpirationDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreationDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Package", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Permission",
                 columns: table => new
                 {
@@ -90,13 +108,14 @@ namespace NewSky.API.Migrations
                 name: "RolePermission",
                 columns: table => new
                 {
-                    RoleId = table.Column<int>(type: "int", nullable: false),
-                    PermissionId = table.Column<int>(type: "int", nullable: false),
                     Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    RoleId = table.Column<int>(type: "int", nullable: false),
+                    PermissionId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RolePermission", x => new { x.RoleId, x.PermissionId });
+                    table.PrimaryKey("PK_RolePermission", x => x.Id);
                     table.ForeignKey(
                         name: "FK_RolePermission_Permission_PermissionId",
                         column: x => x.PermissionId,
@@ -107,6 +126,33 @@ namespace NewSky.API.Migrations
                         name: "FK_RolePermission_Role_RoleId",
                         column: x => x.RoleId,
                         principalTable: "Role",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserPackage",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    PackageId = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserPackage", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserPackage_Package_PackageId",
+                        column: x => x.PackageId,
+                        principalTable: "Package",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserPackage_User_PackageId",
+                        column: x => x.PackageId,
+                        principalTable: "User",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -140,13 +186,14 @@ namespace NewSky.API.Migrations
                 name: "UserRole",
                 columns: table => new
                 {
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    RoleId = table.Column<int>(type: "int", nullable: false),
                     Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    RoleId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserRole", x => new { x.UserId, x.RoleId });
+                    table.PrimaryKey("PK_UserRole", x => x.Id);
                     table.ForeignKey(
                         name: "FK_UserRole_Role_RoleId",
                         column: x => x.RoleId,
@@ -162,6 +209,12 @@ namespace NewSky.API.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Package_TebexId",
+                table: "Package",
+                column: "TebexId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Role_Level",
                 table: "Role",
                 column: "Level",
@@ -171,6 +224,11 @@ namespace NewSky.API.Migrations
                 name: "IX_RolePermission_PermissionId",
                 table: "RolePermission",
                 column: "PermissionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RolePermission_RoleId",
+                table: "RolePermission",
+                column: "RoleId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_User_Email",
@@ -191,6 +249,11 @@ namespace NewSky.API.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_UserPackage_PackageId",
+                table: "UserPackage",
+                column: "PackageId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserPermission_PermissionId",
                 table: "UserPermission",
                 column: "PermissionId");
@@ -208,10 +271,16 @@ namespace NewSky.API.Migrations
                 name: "RolePermission");
 
             migrationBuilder.DropTable(
+                name: "UserPackage");
+
+            migrationBuilder.DropTable(
                 name: "UserPermission");
 
             migrationBuilder.DropTable(
                 name: "UserRole");
+
+            migrationBuilder.DropTable(
+                name: "Package");
 
             migrationBuilder.DropTable(
                 name: "Permission");

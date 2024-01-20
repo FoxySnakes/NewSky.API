@@ -1,8 +1,12 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using NewSky.API.Models.Db;
 using NewSky.API.Models.Dto;
 using NewSky.API.Models.Result;
 using NewSky.API.Services.Interface;
+using Newtonsoft.Json.Linq;
+using System.Text.RegularExpressions;
 
 namespace NewSky.API.Services
 {
@@ -11,46 +15,101 @@ namespace NewSky.API.Services
         private readonly IRepository<User> _userRepository;
         private readonly IMapper _mapper;
         private readonly ISecurityService _securityService;
+        private readonly IUserService _userService;
+        private readonly IRoleService _roleService;
 
-        public AuthService(IRepository<User> userRepository, IMapper mapper, ISecurityService securityService)
+        public AuthService(IRepository<User> userRepository, IMapper mapper, ISecurityService securityService, IUserService userService, IRoleService roleService)
         {
             _userRepository = userRepository;
             _mapper = mapper;
             _securityService = securityService;
+            _userService = userService;
+            _roleService = roleService;
         }
-        public async Task<LoginResult> TryLoginAsync(User user, string password)
+        public async Task<LoginResult> TryLoginAsync(string userNameOrEmail, string password)
         {
+            var regex = new Regex("^.+@.+\\..+$");
+            var user = new User();
             var result = new LoginResult();
-            var passwordMatch = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
-            if (passwordMatch)
-            {
-                result.IsSuccess = true;
-            }
+
+            if (regex.IsMatch(userNameOrEmail))
+                user = await _userRepository.Query().Include(x => x.Roles).ThenInclude(x => x.Role)
+                                                    .Include(x => x.Permissions).ThenInclude(x => x.Permission)
+                                                    .FirstOrDefaultAsync(x => x.Email == userNameOrEmail);
             else
+                user = await _userRepository.Query().FirstOrDefaultAsync(x => x.UserName == userNameOrEmail);
+
+            if (user != null)
             {
-                result.IsSuccess = false;
-                user.AccessFailedCount++;
-                var updateResult = await _userRepository.UpdateAsync(user, user.Id);
-                if (updateResult.IsSuccess)
+                if (user.IsBanned || user.IsLocked)
                 {
-                    if (user.AccessFailedCount == 3)
+                    result.IsBanned = user.IsBanned;
+                    result.LockoutEnd = user.LockoutEnd;
+                    result.IsLocked = user.IsLocked;
+                    result.BanishmentEnd = user.BanishmentEnd;
+                }
+                else if (BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+                {
+                    result.IsSuccess = true;
+                    result.User = _mapper.Map<UserDto>(user);
+                    result.Token = _securityService.GenerateToken(user);
+                }
+                else
+                {
+                    result.IsSuccess = false;
+                    user.AccessFailedCount++;
+                    var updateResult = await _userRepository.UpdateAsync(user, user.Id);
+                    if (updateResult.IsSuccess)
                     {
-                        user.LockoutEnd = TimeSpan.FromHours(1);
-                    }
-                    else if (user.AccessFailedCount == 4)
-                    {
-                        user.LockoutEnd = TimeSpan.FromDays(1);
-                    }
-                    else if (user.AccessFailedCount >= 5)
-                    {
-                        user.LockoutEnd = TimeSpan.MaxValue;
+                        if (user.AccessFailedCount == 3)
+                        {
+                            user.LockoutEnd = TimeSpan.FromHours(1);
+                        }
+                        else if (user.AccessFailedCount == 4)
+                        {
+                            user.LockoutEnd = TimeSpan.FromDays(1);
+                        }
+                        else if (user.AccessFailedCount >= 5)
+                        {
+                            user.LockoutEnd = TimeSpan.MaxValue;
+                        }
                     }
                 }
             }
 
-            result.User = _mapper.Map<UserDto>(user);
-            result.IsBanned = user.IsBanned;
-            result.IsLocked = user.IsLocked;
+            return result;
+        }
+
+        public async Task<RegisterResult> RegisterAccountAsync(RegisterDto model)
+        {
+            var newUser = _mapper.Map<User>(model);
+            var result = new RegisterResult();
+            newUser.UUID = await _userService.GetUserUUIDAsync(model.UserName);
+            if (newUser.UUID == string.Empty)
+            {
+                result.Errors.Add("Compte Mojang Introuvable");
+                return result;
+            }
+            newUser.PasswordHash = _securityService.HashPassword(model.Password);
+            var resultCreation = await _userRepository.CreateAsync(newUser);
+
+
+            if (resultCreation.IsSuccess)
+            {
+                await _roleService.AddRoleOnUserAsync(newUser, DefaultRole.Player);
+                result.User = new UserDto()
+                {
+                    UserName = newUser.UserName,
+                    UUID = newUser.UUID,
+                    Email = newUser.Email,
+                };
+                result.Token = _securityService.GenerateToken(newUser);
+            }
+
+            else
+            {
+                result.Errors = resultCreation.Errors.Select(x => x.Message).ToList();
+            }
 
             return result;
         }
@@ -63,9 +122,75 @@ namespace NewSky.API.Services
                 user.PasswordHash = _securityService.HashPassword(newPassword);
                 user.AccessFailedCount = 0;
                 var changeResult = await _userRepository.UpdateAsync(user, user.Id);
-                return new AccountManageResult(changeResult.IsSuccess, null);
+                return new AccountManageResult() { Error = null};
             }
-            return new AccountManageResult(false, "Mot de passe incorrect");
+            return new AccountManageResult() { Error = "Mot de passe incorrect" };
+        }
+
+        public async Task<AccountManageResult> DisableAccountAsync(User user, PasswordDto passwordDto)
+        {
+            var result = new AccountManageResult();
+
+            if (user != null)
+            {
+                var resultLogin = await TryLoginAsync(user.UserName, passwordDto.OldPassword);
+
+                if (resultLogin.IsSuccess)
+                {
+                    user.LockoutEnd = TimeSpan.MaxValue;
+                    var updateResult = await _userRepository.UpdateAsync(user, user.Id);
+
+                    if (!updateResult.IsSuccess)
+                    {
+                        result.Error = updateResult.Errors.First().ToString();
+                    }
+                }
+                else
+                {
+                    if (resultLogin.IsLocked || resultLogin.IsBanned)
+                    {
+                        result.NeedDisconnect = true;
+                    }
+                    else
+                    {
+                        result.Error = "Mot de passe incorrect";
+                    }
+                }
+            }
+            return result;
+        }
+
+        public async Task<AccountManageResult> DeleteAccountAsync(User user, PasswordDto passwordDto)
+        {
+            var result = new AccountManageResult();
+
+            if (user != null)
+            {
+                var resultLogin = await TryLoginAsync(user.UserName, passwordDto.OldPassword);
+
+                if (resultLogin.IsSuccess)
+                {
+                    var deleteResult = await _userRepository.DeleteAsync(user.Id);
+
+                    if (!deleteResult.IsSuccess)
+                    {
+                        result.Error = deleteResult.Errors.First().ToString();
+                    }
+                }
+                else
+                {
+                    if (resultLogin.IsLocked || resultLogin.IsBanned)
+                    {
+                        result.NeedDisconnect = true;
+                        result.Error = $"Ce compte est {(resultLogin.IsBanned ? "banni" : "verouillé")}";
+                    }
+                    else
+                    {
+                        result.Error = "Mot de passe incorrect";
+                    }
+                }
+            }
+            return result;
         }
     }
 }

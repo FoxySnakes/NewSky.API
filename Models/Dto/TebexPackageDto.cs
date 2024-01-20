@@ -2,13 +2,15 @@
 {
     public class TebexPackageDto
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         public string Name { get; set; }
 
         public string? ImageUrl { get; set; }
 
-        public decimal TotalPrice { get; set; }
+        public decimal PriceHt { get; set; }
+
+        public decimal PriceTtc { get; set; }
 
         public DateTime? ExpirationDate { get; set; }
 

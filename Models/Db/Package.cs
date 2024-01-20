@@ -8,7 +8,9 @@
 
         public string? ImageUrl { get; set; }
 
-        public decimal TotalPrice { get; set; }
+        public decimal PriceHt { get; set; }
+
+        public decimal PriceTtc { get; set; }
 
         public DateTime? ExpirationDate { get; set; }
 

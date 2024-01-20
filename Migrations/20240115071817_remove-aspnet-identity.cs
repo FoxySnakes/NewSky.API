@@ -150,8 +150,8 @@ namespace NewSky.API.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserPackage_User_PackageId",
-                        column: x => x.PackageId,
+                        name: "FK_UserPackage_User_UserId",
+                        column: x => x.UserId,
                         principalTable: "User",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -252,6 +252,11 @@ namespace NewSky.API.Migrations
                 name: "IX_UserPackage_PackageId",
                 table: "UserPackage",
                 column: "PackageId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserPackage_UserId",
+                table: "UserPackage",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserPermission_PermissionId",

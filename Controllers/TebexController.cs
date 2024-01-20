@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using NewSky.API.Models.Db;
 using NewSky.API.Models.Dto;
 using NewSky.API.Services.Interface;
 
@@ -19,6 +21,7 @@ namespace NewSky.API.Controllers
             _memoryCache = memoryCache;
             _userService = userService;
         }
+
 
         [HttpGet("listing")]
         public async Task<IActionResult> GetCategoriesAsync([FromQuery] bool withPackages)
@@ -45,11 +48,30 @@ namespace NewSky.API.Controllers
         }
 
         [HttpPost("manage-package")]
+        [Permission(PermissionName.ManageUserCart)]
         public async Task<IActionResult> ManagePackageOnCart([FromBody] ManagePackageDto addPackageDto)
         {
             var user = await _userService.GetCurrentUserAsync();
             var result = await _tebexService.ManagePackageOnCartAsync(user.Id, addPackageDto.PackageTebexId, addPackageDto.Quantity);
             return Ok(result);
+        }
+
+        [HttpDelete("clear-cart")]
+        [Permission(PermissionName.ManageUserCart)]
+        public async Task<IActionResult> ClearUserCart()
+        {
+            var user = await _userService.GetCurrentUserAsync();
+            var result = await _tebexService.ClearUserCartAsync(user.Id);
+            return Ok(result);
+        }
+
+        [HttpGet("cart-link")]
+        [Permission(PermissionName.ManageUserCart)]
+        public async Task<IActionResult> GetLinkUserCart()
+        {
+            var user = await _userService.GetCurrentUserAsync();
+            var linkUser = await _tebexService.GetLinkTebexCartAsync(user.Id);
+            return Ok(new { linkUserCart = linkUser });
         }
     }
 }

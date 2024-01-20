@@ -22,6 +22,11 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddControllersWithViews();
 builder.Services.AddMemoryCache();
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer();
 
 builder.Services.AddCors(options =>
 {
@@ -29,7 +34,7 @@ builder.Services.AddCors(options =>
     {
         //builder.WithOrigins("https://newsky.fr").AllowAnyMethod().AllowAnyHeader();
 #if DEBUG
-        builder.WithOrigins("http://localhost:4200").AllowAnyMethod().AllowAnyHeader();
+        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
 #endif
     });
 });
@@ -80,4 +85,5 @@ void InstantiateServices(IServiceCollection services)
     services.AddTransient<ISecurityService, SecurityService>();
     services.AddTransient<ITebexService, TebexService>();
     services.AddTransient<IAuthService, AuthService>();
+    services.AddTransient<IRoleService, RoleService>();
 }

@@ -11,5 +11,8 @@ namespace NewSky.API.Services.Interface
 
         Task<PackageManageResult> ManagePackageOnCartAsync(int userId, long packageTebexId, int quantity);
 
+        Task<PackageManageResult> ClearUserCartAsync(int userId);
+
+        Task<string> GetLinkTebexCartAsync(int userId);
     }
 }

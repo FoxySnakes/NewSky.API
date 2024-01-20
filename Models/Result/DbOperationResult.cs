@@ -12,7 +12,7 @@ namespace NewSky.API.Models.Result
         public string Table { get; protected set; }
 
         [Required]
-        public T? Entity { get; set; }
+        public T Entity { get; set; }
 
         public bool IsSuccess
         {

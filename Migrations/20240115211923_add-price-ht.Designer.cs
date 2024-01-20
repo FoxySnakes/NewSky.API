@@ -12,8 +12,8 @@ using NewSky.API.Models;
 namespace NewSky.API.Migrations
 {
     [DbContext(typeof(NewSkyDbContext))]
-    [Migration("20240114010656_remove-aspnet-identity")]
-    partial class removeaspnetidentity
+    [Migration("20240115211923_add-price-ht")]
+    partial class addpriceht
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -46,12 +46,16 @@ namespace NewSky.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("TebexId")
-                        .HasColumnType("bigint");
-
-                    b.Property<decimal>("TotalPrice")
+                    b.Property<decimal>("PriceHt")
                         .HasPrecision(12, 2)
                         .HasColumnType("decimal(12,2)");
+
+                    b.Property<decimal>("PriceTtc")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("decimal(12,2)");
+
+                    b.Property<long>("TebexId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
@@ -234,6 +238,8 @@ namespace NewSky.API.Migrations
 
                     b.HasIndex("PackageId");
 
+                    b.HasIndex("UserId");
+
                     b.ToTable("UserPackage");
                 });
 
@@ -327,7 +333,7 @@ namespace NewSky.API.Migrations
 
                     b.HasOne("NewSky.API.Models.Db.User", "User")
                         .WithMany("Packages")
-                        .HasForeignKey("PackageId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

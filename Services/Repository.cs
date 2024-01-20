@@ -2,11 +2,13 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.IdentityModel.Tokens;
 using NewSky.API.Models;
 using NewSky.API.Models.Enums;
 using NewSky.API.Models.Result;
 using NewSky.API.Services.Interface;
+using System.Linq;
 
 namespace NewSky.API.Services
 {
@@ -53,15 +55,36 @@ namespace NewSky.API.Services
             var entity = await _dbContext.Set<T>().FindAsync(id);
             if (entity == null)
             {
-                dbOperationResult.Errors.Add(new DbError(DbErrorCode.DbNoEntityWithId,id.ToString()));
+                dbOperationResult.Errors.Add(new DbError(DbErrorCode.DbNoEntityWithId, id.ToString()));
                 dbOperationResult.Entity = null;
             }
             else
-            {
-                entity = newEntity;
-                var changeNumber = await _dbContext.SaveChangesAsync();
-                dbOperationResult.Entity = entity;
-                dbOperationResult.Errors = changeNumber > 0 ? new List<DbError>() : new List<DbError> { new DbError(DbErrorCode.DbFailedDuringSave) };
+            { 
+                var hasChanges = false;
+                var keyPropertiesNames = _dbContext.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties.Select(x => x.Name);
+                foreach (var property in typeof(T).GetProperties())
+                {
+                    if (!property.CanWrite || 
+                        property.GetSetMethod() == null || 
+                        keyPropertiesNames.Contains(property.Name) || 
+                        (!property.PropertyType.IsPrimitive && property.PropertyType != typeof(string)))
+                            continue;
+
+                    var currentValue = property.GetValue(entity);
+                    var newValue = property.GetValue(newEntity);
+
+                    if (!object.Equals(currentValue, newValue))
+                    {
+                        property.SetValue(entity, newValue);
+                        hasChanges = true;
+                    }
+                }
+                if (hasChanges)
+                {
+                    var changeNumber = await _dbContext.SaveChangesAsync();
+                    dbOperationResult.Entity = entity;
+                    dbOperationResult.Errors = changeNumber > 0 ? new List<DbError>() : new List<DbError> { new DbError(DbErrorCode.DbFailedDuringSave) };
+                }
             }
 
             return dbOperationResult;

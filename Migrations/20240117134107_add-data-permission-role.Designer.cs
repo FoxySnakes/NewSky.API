@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NewSky.API.Models;
 
@@ -11,9 +12,11 @@ using NewSky.API.Models;
 namespace NewSky.API.Migrations
 {
     [DbContext(typeof(NewSkyDbContext))]
-    partial class NewSkyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240117134107_add-data-permission-role")]
+    partial class adddatapermissionrole
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -110,60 +113,54 @@ namespace NewSky.API.Migrations
                         new
                         {
                             Id = 5,
-                            Description = "Accès à la vue des paramètres généraux",
-                            Name = "access:admin-panel_general-settings"
-                        },
-                        new
-                        {
-                            Id = 6,
                             Description = "Créer un Rôle",
                             Name = "create:role"
                         },
                         new
                         {
-                            Id = 7,
+                            Id = 6,
                             Description = "Modifier les permissions d'un utilisateur",
                             Name = "update:user_permissions"
                         },
                         new
                         {
-                            Id = 8,
+                            Id = 7,
                             Description = "Modifier le pseudo d'un utilisateur",
                             Name = "update:user_username"
                         },
                         new
                         {
-                            Id = 9,
+                            Id = 8,
                             Description = "Gérer l'état d'un compte utilisateur",
                             Name = "update:user_status"
                         },
                         new
                         {
-                            Id = 10,
+                            Id = 9,
                             Description = "Gérer le panier de l'utilisateur authentifié",
                             Name = "update:user_cart"
                         },
                         new
                         {
-                            Id = 11,
+                            Id = 10,
                             Description = "Modifier les paramètres généraux du site",
                             Name = "update:general-settings"
                         },
                         new
                         {
-                            Id = 12,
+                            Id = 11,
                             Description = "Modifier le rôle d'un utilisateur",
                             Name = "update:user_role"
                         },
                         new
                         {
-                            Id = 13,
+                            Id = 12,
                             Description = "Modifier un rôle",
                             Name = "update:role"
                         },
                         new
                         {
-                            Id = 14,
+                            Id = 13,
                             Description = "Supprimer un rôle",
                             Name = "delete:role"
                         });
@@ -253,7 +250,7 @@ namespace NewSky.API.Migrations
                             Id = -1,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 10,
+                            PermissionId = 9,
                             RoleId = -1
                         },
                         new
@@ -365,20 +362,12 @@ namespace NewSky.API.Migrations
                             Id = -15,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 14,
-                            RoleId = -2
-                        },
-                        new
-                        {
-                            Id = -16,
-                            HasPermission = true,
-                            IsEditable = false,
                             PermissionId = 1,
                             RoleId = -3
                         },
                         new
                         {
-                            Id = -17,
+                            Id = -16,
                             HasPermission = true,
                             IsEditable = false,
                             PermissionId = 2,
@@ -386,7 +375,7 @@ namespace NewSky.API.Migrations
                         },
                         new
                         {
-                            Id = -18,
+                            Id = -17,
                             HasPermission = true,
                             IsEditable = false,
                             PermissionId = 3,
@@ -394,7 +383,7 @@ namespace NewSky.API.Migrations
                         },
                         new
                         {
-                            Id = -19,
+                            Id = -18,
                             HasPermission = true,
                             IsEditable = false,
                             PermissionId = 4,
@@ -402,7 +391,7 @@ namespace NewSky.API.Migrations
                         },
                         new
                         {
-                            Id = -20,
+                            Id = -19,
                             HasPermission = true,
                             IsEditable = false,
                             PermissionId = 5,
@@ -410,7 +399,7 @@ namespace NewSky.API.Migrations
                         },
                         new
                         {
-                            Id = -21,
+                            Id = -20,
                             HasPermission = true,
                             IsEditable = false,
                             PermissionId = 6,
@@ -418,7 +407,7 @@ namespace NewSky.API.Migrations
                         },
                         new
                         {
-                            Id = -22,
+                            Id = -21,
                             HasPermission = true,
                             IsEditable = false,
                             PermissionId = 7,
@@ -426,7 +415,7 @@ namespace NewSky.API.Migrations
                         },
                         new
                         {
-                            Id = -23,
+                            Id = -22,
                             HasPermission = true,
                             IsEditable = false,
                             PermissionId = 8,
@@ -434,7 +423,7 @@ namespace NewSky.API.Migrations
                         },
                         new
                         {
-                            Id = -24,
+                            Id = -23,
                             HasPermission = true,
                             IsEditable = false,
                             PermissionId = 9,
@@ -442,7 +431,7 @@ namespace NewSky.API.Migrations
                         },
                         new
                         {
-                            Id = -25,
+                            Id = -24,
                             HasPermission = true,
                             IsEditable = false,
                             PermissionId = 10,
@@ -450,7 +439,7 @@ namespace NewSky.API.Migrations
                         },
                         new
                         {
-                            Id = -26,
+                            Id = -25,
                             HasPermission = true,
                             IsEditable = false,
                             PermissionId = 11,
@@ -458,7 +447,7 @@ namespace NewSky.API.Migrations
                         },
                         new
                         {
-                            Id = -27,
+                            Id = -26,
                             HasPermission = true,
                             IsEditable = false,
                             PermissionId = 12,
@@ -466,18 +455,10 @@ namespace NewSky.API.Migrations
                         },
                         new
                         {
-                            Id = -28,
+                            Id = -27,
                             HasPermission = true,
                             IsEditable = false,
                             PermissionId = 13,
-                            RoleId = -3
-                        },
-                        new
-                        {
-                            Id = -29,
-                            HasPermission = true,
-                            IsEditable = false,
-                            PermissionId = 14,
                             RoleId = -3
                         });
                 });

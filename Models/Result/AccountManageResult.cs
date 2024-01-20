@@ -2,16 +2,10 @@
 {
     public class AccountManageResult
     {
-        public bool Success { get; set; }
+        public bool Success => Error == null;
 
         public string? Error { get; set; }
 
         public bool NeedDisconnect { get; set; } = false;
-
-        public AccountManageResult(bool success, string? error)
-        {
-            Success = success;
-            Error = error;
-        }
     }
 }

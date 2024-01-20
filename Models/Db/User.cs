@@ -12,8 +12,6 @@
 
         public List<UserRole> Roles { get; set; } = new List<UserRole>();
 
-        public int RoleId { get; set; }
-
         public string PasswordHash { get; set; }
 
         public List<UserPermission> Permissions { get; set; } = new List<UserPermission>();

@@ -12,8 +12,8 @@ using NewSky.API.Models;
 namespace NewSky.API.Migrations
 {
     [DbContext(typeof(NewSkyDbContext))]
-    [Migration("20240114191835_update-userpackage-foreignkey")]
-    partial class updateuserpackageforeignkey
+    [Migration("20240115071817_remove-aspnet-identity")]
+    partial class removeaspnetidentity
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

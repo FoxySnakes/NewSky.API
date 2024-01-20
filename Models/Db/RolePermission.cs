@@ -9,5 +9,9 @@
         public int PermissionId { get; set; }
 
         public Permission Permission { get; set; }
+
+        public bool IsEditable { get; set; } = true;
+
+        public bool HasPermission { get; set; } = true;
     }
 }

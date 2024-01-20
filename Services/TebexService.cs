@@ -68,15 +68,13 @@ namespace NewSky.API.Services
                 };
                 foreach (var package in category["packages"])
                 {
-                    var t = package["expiration_date"] == null;
-                    var l = package["expiration_date"].ToString().IsNullOrEmpty();
-                    var x = package["expiration_date"].ToString().IsNullOrEmpty() || package["expiration_date"] == null;
                     var tebexPackage = new TebexPackageDto()
                     {
                         Id = int.Parse(package["id"].ToString()),
                         Name = package["name"].ToString(),
                         ImageUrl = package["image"].ToString(),
-                        TotalPrice = decimal.Parse(package["total_price"].ToString()),
+                        PriceHt = decimal.Parse(package["base_price"].ToString()),
+                        PriceTtc = decimal.Parse(package["total_price"].ToString()),
                         CreationDate = package["created_at"].ToString().IsNullOrEmpty() || package["created_at"] == null ? null : DateTime.Parse(package["created_at"].ToString()),
                         ExpirationDate = package["expiration_date"].ToString().IsNullOrEmpty() || package["expiration_date"] == null ? null : DateTime.Parse(package["expiration_date"].ToString())
                     };
@@ -154,62 +152,109 @@ namespace NewSky.API.Services
                     if (existingPackage != null)
                     {
                         var deleteResult = await _userPackageRepository.DeleteAsync(existingPackage.Id);
-                        result.Result = new BaseResult()
+                        if (!deleteResult.IsSuccess)
                         {
-                            Success = deleteResult.IsSuccess,
-                            Errors = deleteResult.Errors.Select(e => e.Message).ToList()
-                        };
+                            result.Result.Errors.Add(deleteResult.Errors.Select(e => e.Message).First());
+                        }
                     }
                     else
                     {
-                        result.Result = new BaseResult()
-                        {
-                            Success = false,
-                            Errors = new List<string>() { "This Package doesn't exist in the cart of the User" }
-                        };
+                        result.Result.Errors.Add("This Package doesn't exist in the cart of the User");
+
                     }
                 }
                 else
                 {
                     if (existingPackage == null)
                     {
-                        var createResult = await _userPackageRepository.CreateAsync(new UserPackage { UserId = userId, PackageId = package.Id });
-                        result.Result = new BaseResult()
+                        var createResult = await _userPackageRepository.CreateAsync(new UserPackage { UserId = userId, PackageId = package.Id, Quantity = quantity });
+                        if (!createResult.IsSuccess)
                         {
-                            Success = createResult.IsSuccess,
-                            Errors = createResult.Errors.Select(e => e.Message).ToList()
-                        };
+                            result.Result.Errors.Add(createResult.Errors.Select(e => e.Message).First());
+                        }
                     }
                     else
                     {
                         existingPackage.Quantity = quantity;
                         var updateResult = await _userPackageRepository.UpdateAsync(existingPackage, existingPackage.Id);
-                        result.Result = new BaseResult()
+                        if (!updateResult.IsSuccess)
                         {
-                            Success = updateResult.IsSuccess,
-                            Errors = updateResult.Errors.Select(e => e.Message).ToList()
-                        };
+                            result.Result.Errors.Add(updateResult.Errors.Select(e => e.Message).First());
+                        }
                     }
                 }
             }
             else
             {
-                result.Result = new BaseResult()
-                {
-                    Success = false,
-                    Errors = new List<string>() { "No package exist with this Id" }
-                };
+                result.Result.Errors.Add("No package exist with this Id");
             }
-            var userpackages = await _userPackageRepository.Query().Where(x => x.UserId == userId).ToListAsync();
-            foreach (var userpackage in userpackages)
+            var userPackages = await _userPackageRepository.Query().Where(x => x.UserId == userId).ToListAsync();
+            foreach (var userPackage in userPackages)
+            {
+                result.Packages.Add(new PackageCartDto()
                 {
-                    result.Packages.Add(new PackageCartDto()
-                    {
-                        TebexPackage = _mapper.Map<TebexPackageDto>(userpackage.Package),
-                        Quantity = userpackage.Quantity,
-                    });
-                }
+                    TebexPackage = _mapper.Map<TebexPackageDto>(userPackage.Package),
+                    Quantity = userPackage.Quantity,
+                });
+            }
             return result;
+        }
+
+        public async Task<PackageManageResult> ClearUserCartAsync(int userId)
+        {
+            var userPackages = await _userPackageRepository.Query().Where(x => x.UserId == userId).Include(x => x.Package).ToListAsync();
+            var userPackagesFailed = new List<UserPackage>();
+            var result = new PackageManageResult();
+            foreach (var userPackage in userPackages)
+            {
+                var deleteResult = await _userPackageRepository.DeleteAsync(userPackage.Id);
+                if(!deleteResult.IsSuccess)
+                {
+                    result.Result.Errors.Add($"Impossible de supprimer le package '{userPackage.Package.Name}'");
+                    userPackagesFailed.Add(userPackage);
+                }
+            }
+
+            foreach (var userPackageFailed in userPackagesFailed)
+            {
+                result.Packages.Add(new PackageCartDto()
+                {
+                    TebexPackage = _mapper.Map<TebexPackageDto>(userPackageFailed.Package),
+                    Quantity = userPackageFailed.Quantity,
+                });
+            }
+
+            return result;
+        }
+
+        public async Task<string> GetLinkTebexCartAsync(int userId)
+        {
+            var userPackages = await _userPackageRepository.Query().Where(x => x.UserId == userId).Include(x => x.Package).ToListAsync();
+            var linkTebexCart = "";
+            if(userPackages.Count > 0)
+            {
+                var createBasketData = new { username = "FoxySnake" };
+                var createBasketResponse = await _headlessApi.PostAsJsonAsync($"/api/accounts/{_webStoreIdentifier}/baskets", createBasketData);
+                if (createBasketResponse.IsSuccessStatusCode)
+                {
+                    string createBasketResponseContent = await createBasketResponse.Content.ReadAsStringAsync();
+                    var createData = JObject.Parse(createBasketResponseContent)["data"];
+                    var basketIndent = createData["ident"].ToString();
+                    foreach(var userPackage  in userPackages)
+                    {
+                        var addPackageData = new { package_id = userPackage.Package.TebexId, quantity = userPackage.Quantity };
+                        var addPackageResponse = await _headlessApi.PostAsJsonAsync($"/api/baskets/{basketIndent}/packages", addPackageData);
+                        if(addPackageResponse.IsSuccessStatusCode)
+                        {
+                            string addPackageResponseContent = await addPackageResponse.Content.ReadAsStringAsync();
+                            var addData = JObject.Parse(addPackageResponseContent)["data"];
+                            linkTebexCart = addData["links"]["checkout"].ToString();
+                        }
+                    }
+                }
+            }
+
+            return linkTebexCart;
         }
 
 

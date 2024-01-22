@@ -3,14 +3,12 @@ using Microsoft.AspNetCore.Identity;
 using NewSky.API.Models.Db;
 using NewSky.API.Models.Dto;
 
-namespace NewSky.API.Mappings
+namespace NewSky.API.Data
 {
     public class AutoMapperProfiles : Profile
     {
         public AutoMapperProfiles()
         {
-
-            CreateMap<UserNumberVote, UserNumberVoteDto>().ReverseMap();
 
             CreateMap<VoteReward, VoteRewardDto>().ReverseMap();
 
@@ -24,7 +22,13 @@ namespace NewSky.API.Mappings
             CreateMap<RegisterDto, User>();
 
             CreateMap<User, UserDto>()
-                .ForMember(dest => dest.Permissions, opt => opt.MapFrom(src => src.Permissions.Select(x => x.Permission.Name)))
+                .ForMember(dest => dest.Permissions, opt => opt.MapFrom(src => src.Roles.SelectMany(role =>
+                    role.Role.Permissions.Select(permission => new PermissionDto
+                    {
+                        Name = permission.Permission.Name,
+                        HasPermission = permission.HasPermission
+                    }))
+                ))
                 .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.Roles.Select(x => x.Role.Name)))
                 .ForMember(dest => dest.Packages, opt => opt.Ignore())
                 .ForMember(dest => dest.Packages, opt => opt.MapFrom(src => src.Packages.Select(userpackage => new PackageCartDto
@@ -41,17 +45,14 @@ namespace NewSky.API.Mappings
                     },
                     Quantity = userpackage.Quantity,
                 })));
-            
+
+
             CreateMap<UserDto, User>();
 
             CreateMap<RoleDto, Role>();
 
             CreateMap<Role, RoleDto>().ReverseMap()
                 .ForMember(dest => dest.Permissions, opt => opt.Ignore());
-
-            CreateMap<UserPermission, PermissionDto>()
-                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Permission.Name))
-                .ForMember(dest => dest.HasPermission, opt => opt.MapFrom(src => src.HasPermission));
 
             CreateMap<RolePermission, PermissionDto>()
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Permission.Name))

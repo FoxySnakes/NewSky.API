@@ -34,6 +34,23 @@ namespace NewSky.API.Migrations
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
 
+            migrationBuilder.RenameColumn(
+                name: "TotalVotes",
+                table: "UserNumberVote",
+                newName: "Year");
+
+            migrationBuilder.RenameColumn(
+                name: "MonthlyVotes",
+                table: "UserNumberVote",
+                newName: "Votes");
+
+            migrationBuilder.AddColumn<int>(
+                name: "Month",
+                table: "UserNumberVote",
+                type: "int",
+                nullable: false,
+                defaultValue: 0);
+
             migrationBuilder.CreateTable(
                 name: "Package",
                 columns: table => new
@@ -43,7 +60,8 @@ namespace NewSky.API.Migrations
                     TebexId = table.Column<long>(type: "bigint", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    TotalPrice = table.Column<decimal>(type: "decimal(12,2)", precision: 12, scale: 2, nullable: false),
+                    PriceHt = table.Column<decimal>(type: "decimal(12,2)", precision: 12, scale: 2, nullable: false),
+                    PriceTtc = table.Column<decimal>(type: "decimal(12,2)", precision: 12, scale: 2, nullable: false),
                     ExpirationDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     CreationDate = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
@@ -59,8 +77,7 @@ namespace NewSky.API.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsAdminPermission = table.Column<bool>(type: "bit", nullable: false)
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -73,8 +90,9 @@ namespace NewSky.API.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Level = table.Column<int>(type: "int", nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsDefault = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -90,7 +108,6 @@ namespace NewSky.API.Migrations
                     UserName = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     UUID = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    RoleId = table.Column<int>(type: "int", nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     LockoutEnd = table.Column<TimeSpan>(type: "time", nullable: false),
                     IsLocked = table.Column<bool>(type: "bit", nullable: false),
@@ -111,7 +128,9 @@ namespace NewSky.API.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     RoleId = table.Column<int>(type: "int", nullable: false),
-                    PermissionId = table.Column<int>(type: "int", nullable: false)
+                    PermissionId = table.Column<int>(type: "int", nullable: false),
+                    IsEditable = table.Column<bool>(type: "bit", nullable: false),
+                    HasPermission = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -158,31 +177,6 @@ namespace NewSky.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserPermission",
-                columns: table => new
-                {
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    PermissionId = table.Column<int>(type: "int", nullable: false),
-                    Id = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserPermission", x => new { x.UserId, x.PermissionId });
-                    table.ForeignKey(
-                        name: "FK_UserPermission_Permission_PermissionId",
-                        column: x => x.PermissionId,
-                        principalTable: "Permission",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_UserPermission_User_UserId",
-                        column: x => x.UserId,
-                        principalTable: "User",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "UserRole",
                 columns: table => new
                 {
@@ -201,11 +195,81 @@ namespace NewSky.API.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserRole_User_RoleId",
-                        column: x => x.RoleId,
+                        name: "FK_UserRole_User_UserId",
+                        column: x => x.UserId,
                         principalTable: "User",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Permission",
+                columns: new[] { "Id", "Description", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Accès au panel admin du site", "access:admin-panel" },
+                    { 2, "Accès à la vue du dashboard sur le panel admin", "access:admin-panel_dashboard" },
+                    { 3, "Accès à la vue des ventes sur le panel admin", "access:admin-panel_sales" },
+                    { 4, "Accès à la vue des utilisateurs sur le panel admin", "access:admin-panel_users" },
+                    { 5, "Accès à la vue des votes sur le panel admin", "access:admin-panel_votes" },
+                    { 6, "Accès à la vue des paramètres généraux", "access:admin-panel_general-settings" },
+                    { 7, "Créer un Rôle", "create:role" },
+                    { 8, "Modifier les permissions d'un utilisateur", "update:user_permissions" },
+                    { 9, "Modifier le pseudo d'un utilisateur", "update:user_username" },
+                    { 10, "Gérer l'état d'un compte utilisateur", "update:user_status" },
+                    { 11, "Gérer le panier de l'utilisateur authentifié", "update:user_cart" },
+                    { 12, "Modifier les paramètres généraux du site", "update:general-settings" },
+                    { 13, "Modifier le rôle d'un utilisateur", "update:user_role" },
+                    { 14, "Modifier un rôle", "update:role" },
+                    { 15, "Supprimer un rôle", "delete:role" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Role",
+                columns: new[] { "Id", "Description", "IsDefault", "Name" },
+                values: new object[,]
+                {
+                    { -3, "Développeur du site", true, "Développeur du site" },
+                    { -2, "Responsable du serveur", true, "Fondateur" },
+                    { -1, "Utilisateur authentifié", true, "Joueur" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "RolePermission",
+                columns: new[] { "Id", "HasPermission", "IsEditable", "PermissionId", "RoleId" },
+                values: new object[,]
+                {
+                    { -31, true, false, 15, -3 },
+                    { -30, true, false, 14, -3 },
+                    { -29, true, false, 13, -3 },
+                    { -28, true, false, 12, -3 },
+                    { -27, true, false, 11, -3 },
+                    { -26, true, false, 10, -3 },
+                    { -25, true, false, 9, -3 },
+                    { -24, true, false, 8, -3 },
+                    { -23, true, false, 7, -3 },
+                    { -22, true, false, 6, -3 },
+                    { -21, true, false, 5, -3 },
+                    { -20, true, false, 4, -3 },
+                    { -19, true, false, 3, -3 },
+                    { -18, true, false, 2, -3 },
+                    { -17, true, false, 1, -3 },
+                    { -16, true, false, 15, -2 },
+                    { -15, true, false, 14, -2 },
+                    { -14, true, false, 13, -2 },
+                    { -13, true, false, 12, -2 },
+                    { -12, true, false, 11, -2 },
+                    { -11, true, false, 10, -2 },
+                    { -10, true, false, 9, -2 },
+                    { -9, true, false, 8, -2 },
+                    { -8, true, false, 7, -2 },
+                    { -7, true, false, 6, -2 },
+                    { -6, true, false, 5, -2 },
+                    { -5, true, false, 4, -2 },
+                    { -4, true, false, 3, -2 },
+                    { -3, true, false, 2, -2 },
+                    { -2, true, false, 1, -2 },
+                    { -1, true, false, 11, -1 }
                 });
 
             migrationBuilder.CreateIndex(
@@ -215,9 +279,9 @@ namespace NewSky.API.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Role_Level",
+                name: "IX_Role_Name",
                 table: "Role",
-                column: "Level",
+                column: "Name",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -226,9 +290,10 @@ namespace NewSky.API.Migrations
                 column: "PermissionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RolePermission_RoleId",
+                name: "IX_RolePermission_RoleId_PermissionId",
                 table: "RolePermission",
-                column: "RoleId");
+                columns: new[] { "RoleId", "PermissionId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_User_Email",
@@ -254,19 +319,21 @@ namespace NewSky.API.Migrations
                 column: "PackageId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserPackage_UserId",
+                name: "IX_UserPackage_UserId_PackageId",
                 table: "UserPackage",
-                column: "UserId");
+                columns: new[] { "UserId", "PackageId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserPermission_PermissionId",
-                table: "UserPermission",
-                column: "PermissionId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserRole_RoleId",
+                name: "IX_UserRole_RoleId_UserId",
                 table: "UserRole",
-                column: "RoleId");
+                columns: new[] { "RoleId", "UserId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserRole_UserId",
+                table: "UserRole",
+                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -279,22 +346,33 @@ namespace NewSky.API.Migrations
                 name: "UserPackage");
 
             migrationBuilder.DropTable(
-                name: "UserPermission");
-
-            migrationBuilder.DropTable(
                 name: "UserRole");
 
             migrationBuilder.DropTable(
-                name: "Package");
+                name: "Permission");
 
             migrationBuilder.DropTable(
-                name: "Permission");
+                name: "Package");
 
             migrationBuilder.DropTable(
                 name: "Role");
 
             migrationBuilder.DropTable(
                 name: "User");
+
+            migrationBuilder.DropColumn(
+                name: "Month",
+                table: "UserNumberVote");
+
+            migrationBuilder.RenameColumn(
+                name: "Year",
+                table: "UserNumberVote",
+                newName: "TotalVotes");
+
+            migrationBuilder.RenameColumn(
+                name: "Votes",
+                table: "UserNumberVote",
+                newName: "MonthlyVotes");
 
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",

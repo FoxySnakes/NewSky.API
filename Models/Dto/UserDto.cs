@@ -14,7 +14,7 @@ namespace NewSky.API.Models.Dto
 
         public List<string> Roles { get; set; } = new List<string>();
 
-        public List<string> Permissions { get; set; } = new List<string>();
+        public List<PermissionDto> Permissions { get; set; } = new List<PermissionDto>();
 
         public List<PackageCartDto> Packages { get; set; } = new List<PackageCartDto>();
     }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.IdentityModel.Tokens;
+using NewSky.API.Data;
 using NewSky.API.Models;
 using NewSky.API.Models.Enums;
 using NewSky.API.Models.Result;

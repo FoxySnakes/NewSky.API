@@ -22,6 +22,9 @@ namespace NewSky.API.Models.Db
         [Description("Accès au panel admin du site")]
         public const string AccessToAdminPanel = "access:admin-panel";
 
+        [Description("Accès à la vue du dashboard sur le panel admin")]
+        public const string AccessToDashboardOnAdminPanel = "access:admin-panel_dashboard";
+
         [Description("Accès à la vue des ventes sur le panel admin")]
         public const string AccessToSalesOnAdminPanel = "access:admin-panel_sales";
 

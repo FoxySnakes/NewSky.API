@@ -7,6 +7,6 @@ namespace NewSky.API.Services.Interface
     public interface IVoteService
     {
         Task<VoteStatusDto> GetVoteStatus(VoteWebSite voteWebSite, string username);
-        Task<TimeSpan> TryVoteAsync(VoteWebSite voteWebsite, string username);
+        Task<bool> TryVoteAsync(VoteWebSite voteWebsite, string username);
     }
 }

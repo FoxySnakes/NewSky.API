@@ -45,12 +45,28 @@ namespace NewSky.API.Controllers
         [HttpGet("server-ranking")]
         public async Task<IActionResult> GetServerRanking([FromQuery] int limit = 10)
         {
-            var monthlyTop = await _userNumberVoteRepository.Query().OrderByDescending(x => x.MonthlyVotes).Take(limit).ToListAsync();
-            var totalTop = await _userNumberVoteRepository.Query().OrderByDescending(x => x.TotalVotes).Take(limit).ToListAsync();
+            var monthlyTop = await _userNumberVoteRepository.Query().Where(x => x.Month == DateTime.Now.Month && x.Year == DateTime.Now.Year)
+                                                                    .OrderByDescending(x => x.Votes)
+                                                                    .Take(limit)
+                                                                    .Select(x => new UserNumberVoteDto
+                                                                    {
+                                                                        Username = x.Username,
+                                                                        MonthlyVotes = x.Votes
+                                                                    })
+                                                                    .ToListAsync();
+
+            var totalTop = await _userNumberVoteRepository.Query().GroupBy(x => x.Username)
+                                                          .Select(group => new UserNumberVoteDto
+                                                          {
+                                                              Username = group.Key,
+                                                              TotalVotes = group.Sum(x => x.Votes),
+                                                          })
+                                                         .ToListAsync();
+
             var result = new RankingResult()
             {
                 MonthlyTop = _mapper.Map<List<UserNumberVoteDto>>(monthlyTop),
-                TotalTop = _mapper.Map<List<UserNumberVoteDto>>(totalTop)
+                TotalTop = totalTop
             };
             return Ok(result);
         }
@@ -59,15 +75,31 @@ namespace NewSky.API.Controllers
         public async Task<IActionResult> GetUserRanking([FromQuery] string username)
         {
             var ranking = await _userNumberVoteRepository.Query().ToListAsync();
-            var userVotesNumber = ranking.Find(x => x.Username == username);
-            var userRanking = new UserNumberVoteDto()
+            var userVotesNumber = ranking.Where(x => x.Username == username);
+            var userRanking = new UserNumberVoteDto() { Username = username };
+            if (userVotesNumber.Any())
             {
-                Username = username,
-                MonthlyVotes = userVotesNumber.MonthlyVotes,
-                TotalVotes = userVotesNumber.TotalVotes,
-                MonthlyPosition = ranking.OrderByDescending(x => x.MonthlyVotes).ToList().IndexOf(userVotesNumber) + 1,
-                TotalPosition = ranking.OrderByDescending(x => x.TotalVotes).ToList().IndexOf(userVotesNumber) + 1,
-            };
+                var monthlyVotes = userVotesNumber.FirstOrDefault(x => x.Month == DateTime.Now.Month && x.Year == DateTime.Now.Year);
+                var monthlyTop = ranking.Where(x => x.Month == DateTime.Now.Month && x.Year == DateTime.Now.Year)
+                                                     .OrderByDescending(x => x.Votes)
+                                                     .ToList();
+                var totalTop = ranking.GroupBy(x => x.Username)
+                                      .OrderByDescending(group => group.Sum(x => x.Votes))
+                                      .ToList();
+
+                userRanking.MonthlyVotes = monthlyVotes == null ? 0 : monthlyVotes.Votes;
+                userRanking.TotalVotes = userVotesNumber.Sum(x => x.Votes);
+                userRanking.MonthlyPosition = monthlyTop.FindIndex(x => x.Username == username) == -1 ? monthlyTop.Count() + 1 : monthlyTop.FindIndex(x => x.Username == username) + 1;
+                userRanking.TotalPosition = totalTop.FindIndex(x => x.Key == username) == -1 ? totalTop.Count() + 1 : totalTop.FindIndex(group => group.Key == username) + 1;
+            }
+            else
+            {
+                userRanking.MonthlyVotes = 0;
+                userRanking.TotalVotes = 0;
+                userRanking.MonthlyPosition = ranking.Where(x => x.Month == DateTime.Now.Month && x.Year == DateTime.Now.Year).OrderByDescending(x => x.Votes).ToList().Count + 1;
+                userRanking.TotalPosition = ranking.GroupBy(x => x.Username).Count() + 1;
+            }
+
 
             return Ok(userRanking);
         }

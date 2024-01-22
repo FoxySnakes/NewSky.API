@@ -33,9 +33,7 @@ namespace NewSky.API.Services
             var result = new LoginResult();
 
             if (regex.IsMatch(userNameOrEmail))
-                user = await _userRepository.Query().Include(x => x.Roles).ThenInclude(x => x.Role)
-                                                    .Include(x => x.Permissions).ThenInclude(x => x.Permission)
-                                                    .FirstOrDefaultAsync(x => x.Email == userNameOrEmail);
+                user = await _userRepository.Query().FirstOrDefaultAsync(x => x.Email == userNameOrEmail);
             else
                 user = await _userRepository.Query().FirstOrDefaultAsync(x => x.UserName == userNameOrEmail);
 

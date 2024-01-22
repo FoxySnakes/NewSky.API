@@ -2,12 +2,13 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using NewSky.API.Models;
 using NewSky.API.Models.Db;
 using System.ComponentModel;
 using System.Reflection;
 using System.Text.RegularExpressions;
 
-namespace NewSky.API.Models
+namespace NewSky.API.Data
 {
     public class NewSkyDbContext : DbContext
     {
@@ -41,28 +42,18 @@ namespace NewSky.API.Models
                 .HasIndex(x => x.UUID)
                 .IsUnique();
 
-            // User Permission 
-            modelBuilder.Entity<UserPermission>()
-                .HasKey(x => new { x.UserId, x.PermissionId });
-
-            modelBuilder.Entity<UserPermission>()
-                .HasOne(x => x.User)
-                .WithMany(u => u.Permissions)
-                .HasForeignKey(x => x.UserId);
-
-            modelBuilder.Entity<UserPermission>()
-                .HasOne(x => x.Permission)
-                .WithMany()
-                .HasForeignKey(x => x.PermissionId);
-
             // Role Permission
+
+            modelBuilder.Entity<RolePermission>()
+                .HasIndex(x => new { x.RoleId, x.PermissionId })
+                .IsUnique();
 
             modelBuilder.Entity<RolePermission>()
                 .HasOne(x => x.Role)
                 .WithMany(u => u.Permissions)
                 .HasForeignKey(x => x.RoleId);
 
-            modelBuilder.Entity<UserPermission>()
+            modelBuilder.Entity<RolePermission>()
                 .HasOne(x => x.Permission)
                 .WithMany()
                 .HasForeignKey(x => x.PermissionId);
@@ -73,6 +64,10 @@ namespace NewSky.API.Models
                 .IsUnique();
 
             // User Role
+
+            modelBuilder.Entity<UserRole>()
+                .HasIndex(x => new { x.RoleId, x.UserId })
+                .IsUnique();
 
             modelBuilder.Entity<UserRole>()
                 .HasOne(x => x.User)
@@ -89,7 +84,11 @@ namespace NewSky.API.Models
                 .HasIndex(x => x.Position)
                 .IsUnique();
 
-            // UserPackage
+            // User Package
+
+            modelBuilder.Entity<UserPackage>()
+                .HasIndex(x => new { x.UserId, x.PackageId })
+                .IsUnique();
 
             modelBuilder.Entity<UserPackage>()
                 .HasOne(x => x.User)
@@ -104,7 +103,7 @@ namespace NewSky.API.Models
             // Package
             modelBuilder.Entity<Package>()
                 .Property(x => x.PriceHt)
-                .HasPrecision(12,2);
+                .HasPrecision(12, 2);
 
             modelBuilder.Entity<Package>()
                 .Property(x => x.PriceTtc)
@@ -134,7 +133,7 @@ namespace NewSky.API.Models
                 permissionIdByName.Add((string)property.GetValue(null), i);
                 i++;
             }
-
+            
             // Player Role
             modelBuilder.Entity<Role>()
                 .HasData(new Role
@@ -169,7 +168,7 @@ namespace NewSky.API.Models
                 .HasData(Enumerable.Range(1, permissionIdByName.Count)
                     .Select(id => new RolePermission
                     {
-                        Id = -(id+1),
+                        Id = -(id + 1),
                         RoleId = -2,
                         PermissionId = id,
                         IsEditable = false,
@@ -185,8 +184,9 @@ namespace NewSky.API.Models
                     Id = -3,
                     Name = DefaultRole.WebSiteDeveloper,
                     Description = typeof(DefaultRole).GetField(nameof(DefaultRole.WebSiteDeveloper)).GetCustomAttribute<DescriptionAttribute>().Description,
-            IsDefault = true,
+                    IsDefault = true,
                 });
+
 
             modelBuilder.Entity<RolePermission>()
                 .HasData(Enumerable.Range(1, permissionIdByName.Count)

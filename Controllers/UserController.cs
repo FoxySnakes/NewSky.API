@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using NewSky.API.Models.Db;
 using NewSky.API.Models.Dto;
 using NewSky.API.Models.Result;
+using NewSky.API.Services;
 using NewSky.API.Services.Interface;
 
 namespace NewSky.API.Controllers
@@ -25,7 +26,7 @@ namespace NewSky.API.Controllers
         [HttpGet("current")]
         public async Task<IActionResult> GetCurrentUserAsync()
         {
-            var user = await _userService.GetCurrentUserAsync(includePackages:true, includeRoles:true);
+            var user = await _userService.GetCurrentUserAsync(includePackages:true, includeRoles:true, includePermissions:true);
             var userDto = _mapper.Map<UserDto>(user);
             return Ok(userDto);
         }

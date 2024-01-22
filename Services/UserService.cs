@@ -3,17 +3,20 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NewSky.API.Attributs;
+using NewSky.API.Extensions;
 using NewSky.API.Models.Db;
 using NewSky.API.Models.Dto;
 using NewSky.API.Models.Result;
 using NewSky.API.Services.Interface;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
+using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Reflection;
 using System.Security.Cryptography.Xml;
+using System.Text.RegularExpressions;
 
 namespace NewSky.API.Services
 {
@@ -64,10 +67,9 @@ namespace NewSky.API.Services
             }
             if (includePermissions)
             {
-                userQuery = userQuery.Include(x => x.Permissions).ThenInclude(x => x.Permission)
-                           .Include(x => x.Roles).ThenInclude(x => x.Role).ThenInclude(x => x.Permissions).ThenInclude(x => x.Permission);
+                userQuery = userQuery.Include(x => x.Roles).ThenInclude(x => x.Role).ThenInclude(x => x.Permissions).ThenInclude(x => x.Permission);
             }
-            
+
             var user = await userQuery.FirstOrDefaultAsync(x => x.UserName == _httpContextAccessor.HttpContext.User.Identity.Name);
 
             return user;
@@ -90,24 +92,26 @@ namespace NewSky.API.Services
 
         public async Task<string> GetUserUUIDAsync(string username)
         {
-            var uuid = "";
-            var response = await _httpClient.GetAsync($"https://api.mojang.com/users/profiles/minecraft/{username}");
-            if (response.StatusCode == HttpStatusCode.NotFound)
+            var uuid = string.Empty;
+            HttpResponseMessage response;
+            do
             {
-                return string.Empty;
+                response = await _httpClient.GetAsync($"https://api.mojang.com/users/profiles/minecraft/{username}");
+                if( response.StatusCode != HttpStatusCode.OK || response.StatusCode == HttpStatusCode.TooManyRequests)
+                {
+                    return uuid;
+                }
+
+                await Task.Delay(1000);
             }
+            while(response.StatusCode == HttpStatusCode.TooManyRequests);
 
-            try
+            var content = await response.Content.ReadAsStringAsync();
+            var jsonContent = JObject.Parse(content);
+            if (jsonContent["id"] != null)
             {
-                var content = await response.Content.ReadAsStringAsync();
-                var jsonContent = JObject.Parse(content);
-
                 uuid = jsonContent["id"].ToString();
                 //uuid = uuid.Insert(8, "-").Insert(13, "-").Insert(18, "-").Insert(23, "-");
-            }
-            catch (Exception ex)
-            {
-                uuid = string.Empty;
             }
             return uuid;
         }
@@ -148,7 +152,6 @@ namespace NewSky.API.Services
             var hasAccess = false;
             var userPermissions = new List<PermissionDto>();
 
-            userPermissions.AddRange(_mapper.Map<List<PermissionDto>>(user.Permissions.Where(x => x.Permission.Name == permissionName)));
             userPermissions.AddRange(_mapper.Map<List<PermissionDto>>(user.Roles.SelectMany(role => role.Role.Permissions.Where(x => x.Permission.Name == permissionName))));
 
             var hasPermissionRefused = false; // On vérifie d'abord si la permission est réfusé car le refus l'emporte sur l'acceptation
@@ -174,11 +177,9 @@ namespace NewSky.API.Services
         public async Task<PaginedResult<UsersFilterByCategory>> GetUsersFilteredAsync(PaginationFilterParamsDto paramsFilter)
         {
             var usersFilterByCategories = new List<UsersFilterByCategory>();
-            var usersQueryable = _userRepository.Query().Include(x => x.Roles).ThenInclude(x => x.Role)
-                                                        .Include(x => x.Permissions).ThenInclude(x => x.Permission)
-                                                        .AsQueryable();
+            var usersQueryable = _userRepository.Query().Include(x => x.Roles).ThenInclude(x => x.Role).AsQueryable();
 
-            if(paramsFilter.Search != null)
+            if (paramsFilter.Search != null)
             {
                 usersQueryable = usersQueryable.Where(x => x.UserName.Contains(paramsFilter.Search));
             }
@@ -187,11 +188,10 @@ namespace NewSky.API.Services
             {
                 case "username":
                     var users = new List<User>();
-                    if(paramsFilter.Direction == "asc")
-                        users = await usersQueryable.OrderBy(x => x.UserName)
+                    if (paramsFilter.Direction == "asc")
+                        users = usersQueryable.ToList().OrderBy(x => x.UserName, new CustomStringComparer())
                                         .Skip((paramsFilter.PageNumber - 1) * paramsFilter.PageSize)
-                                        .Take(paramsFilter.PageSize)
-                                        .ToListAsync();
+                                        .Take(paramsFilter.PageSize).ToList();
 
                     else
                         users = await usersQueryable.OrderByDescending(x => x.UserName)
@@ -199,7 +199,7 @@ namespace NewSky.API.Services
                                         .Take(paramsFilter.PageSize)
                                         .ToListAsync();
 
-
+                    var x = users.Select(x => x.UserName).ToList(); 
                     var firstChars = new List<string> { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
                     foreach (var character in firstChars)
                     {

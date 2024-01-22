@@ -14,8 +14,6 @@
 
         public string PasswordHash { get; set; }
 
-        public List<UserPermission> Permissions { get; set; } = new List<UserPermission>();
-
         public TimeSpan LockoutEnd { get; set; }
 
         public bool IsLocked

@@ -201,6 +201,12 @@ namespace NewSky.API.Data
                         Name = PermissionName.DeleteRole,
                         Description = typeof(PermissionName).GetField(nameof(PermissionName.DeleteRole)).GetCustomAttribute<DescriptionAttribute>().Description
                     },
+                    new Permission
+                    {
+                        Id = -14,
+                        Name = PermissionName.AccessToRolesOnAdminPanel,
+                        Description = typeof(PermissionName).GetField(nameof(PermissionName.AccessToRolesOnAdminPanel)).GetCustomAttribute<DescriptionAttribute>().Description
+                    },
                 });
 
 
@@ -332,6 +338,14 @@ namespace NewSky.API.Data
                         PermissionId = -13,
                         IsEditable = false,
                         HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -63,
+                        RoleId = -2,
+                        PermissionId = -14,
+                        IsEditable = false,
+                        HasPermission = true
                     }
                 });
 
@@ -450,6 +464,14 @@ namespace NewSky.API.Data
                         Id = -112,
                         RoleId = -3,
                         PermissionId = -13,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -113,
+                        RoleId = -3,
+                        PermissionId = -14,
                         IsEditable = false,
                         HasPermission = true
                     }

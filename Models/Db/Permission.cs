@@ -34,6 +34,9 @@ namespace NewSky.API.Models.Db
         [Description("Accès à la vue des votes sur le panel admin")]
         public const string AccessToVotesOnAdminPanel = "access:admin-panel_votes";
 
+        [Description("Accès à la vue des rôles sur le panel admin")]
+        public const string AccessToRolesOnAdminPanel = "access:admin-panel_roles";
+
         [Description("Accès à la vue des paramètres généraux")]
         public const string AccessToGeneralSettingsOnAdminPanel = "access:admin-panel_general-settings";
 

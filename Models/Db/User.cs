@@ -14,24 +14,24 @@
 
         public string PasswordHash { get; set; }
 
-        public TimeSpan LockoutEnd { get; set; }
+        public DateTime LockoutEnd { get; set; }
 
         public bool IsLocked
         {
             get
             {
-                return LockoutEnd > TimeSpan.Zero;
+                return LockoutEnd < DateTime.Now;
             }
             private set { }
         }
 
-        public TimeSpan BanishmentEnd { get; set; }
+        public DateTime BanishmentEnd { get; set; }
 
         public bool IsBanned
         {
             get
             {
-                return BanishmentEnd > TimeSpan.Zero;
+                return BanishmentEnd < DateTime.Now;
             }
             private set { }
         }

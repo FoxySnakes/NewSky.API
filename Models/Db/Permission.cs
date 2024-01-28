@@ -46,17 +46,11 @@ namespace NewSky.API.Models.Db
 
         // Update
 
-        [Description("Modifier les permissions d'un utilisateur")]
-        public const string UpdateUserPermissions = "update:user_permissions";
+        [Description("Modifier les rôles et nom d'utilisateur d'un utilisateur")]
+        public const string UpdateUserInformations = "update:user_informations";
 
-        [Description("Modifier le pseudo d'un utilisateur")]
-        public const string UpdateUserUserName = "update:user_username";
-
-        [Description("Gérer l'état d'un compte utilisateur")]
-        public const string UpdateUserStatus = "update:user_status";
-
-        [Description("Gérer le panier de l'utilisateur authentifié")]
-        public const string ManageUserCart = "update:user_cart";
+        [Description("Modifier la sanction de l'utilisateur")]
+        public const string UpdateUserPunishment = "update:user_punishment";
 
         [Description("Modifier les paramètres généraux du site")]
         public const string UpdateGeneralSettings = "update:general-settings";

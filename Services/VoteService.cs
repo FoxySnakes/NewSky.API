@@ -192,8 +192,8 @@ namespace NewSky.API.Services
                 }
                 else
                 {
-                    var newUserNumberVote = _mapper.Map<UserNumberVote>(userNumberVote);
-                    await _userNumberVoteRepository.UpdateAsync(newUserNumberVote, newUserNumberVote.Id);
+                    userNumberVote.Votes++;
+                    await _userNumberVoteRepository.UpdateAsync(userNumberVote.Id);
                 }
             }
 

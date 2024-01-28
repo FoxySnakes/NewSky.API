@@ -8,9 +8,9 @@ namespace NewSky.API.Models.Result
         public UserDto? User { get; set; } = null;
         public bool IsSuccess { get; set; }
         public bool IsLocked { get; set; } = false;
-        public TimeSpan LockoutEnd { get; set; } = TimeSpan.Zero;
+        public DateTime? LockoutEnd { get; set; } = null;
         public bool IsBanned { get; set; } = false;
-        public TimeSpan BanishmentEnd { get; set; } =  TimeSpan.Zero;
+        public DateTime? BanishmentEnd { get; set; } = null;
         public string Token { get; set; }
     }
 }

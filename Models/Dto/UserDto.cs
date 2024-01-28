@@ -17,5 +17,9 @@ namespace NewSky.API.Models.Dto
         public List<PermissionDto> Permissions { get; set; } = new List<PermissionDto>();
 
         public List<PackageCartDto> Packages { get; set; } = new List<PackageCartDto>();
+
+        public DateTime? BanishmentEnd { get; set; } = null;
+
+        public DateTime? LockoutEnd { get; set; } = null;
     }
 }

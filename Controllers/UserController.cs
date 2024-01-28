@@ -15,12 +15,23 @@ namespace NewSky.API.Controllers
     {
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
+        private readonly IRoleService _roleService;
 
         public UserController(IUserService userService,
-                              IMapper mapper)
+                              IMapper mapper,
+                              IRoleService roleService)
         {
             _userService = userService;
             _mapper = mapper;
+            _roleService = roleService;
+        }
+
+        [HttpGet]
+        [Permission(PermissionName.AccessToUsersOnAdminPanel)]
+        public async Task<IActionResult> GetAllUsers([FromQuery] PaginationFilterParamsDto paginationFilterParams)
+        {
+            var result = await _userService.GetUsersFilteredAsync(paginationFilterParams);
+            return Ok(result);
         }
 
         [HttpGet("current")]
@@ -38,20 +49,56 @@ namespace NewSky.API.Controllers
             return Ok(result);
         }
 
-        [HttpGet]
-        [Permission(PermissionName.AccessToUsersOnAdminPanel)]
-        public async Task<IActionResult> GetAllUsers([FromQuery] PaginationFilterParamsDto paginationFilterParams)
+        [HttpPost("update-informations")]
+        [Permission(PermissionName.UpdateUserInformations)]
+        public async Task<IActionResult> UpdateUserInformations([FromBody] UpdateUserInformationsDto model)
         {
-            var result = await _userService.GetUsersFilteredAsync(paginationFilterParams);
+            var result = new BaseResult();
+
+            var resultUpdateUsername = await _userService.UpdateUserUsernameAsync(model.Uuid, model.UserName);
+            if(!resultUpdateUsername.Success)
+            {
+                result.Errors = resultUpdateUsername.Errors;
+                return Ok(result);
+            }
+
+            var user = await _userService.GetUserByUuid(model.Uuid, includeRoles: true);
+
+            foreach (var role in model.Roles)
+            {
+                if(!user.Roles.Select(x => x.Role.Name).Contains(role))
+                {
+                    var resultAddRole = await _roleService.AddRoleOnUserAsync(user, role);
+                    if (!resultAddRole.Success)
+                    {
+                        result.Errors = resultAddRole.Errors;
+                    }
+                }
+            }
+
+            var userRolesName = user.Roles.Select(x => x.Role.Name).ToList();
+
+            foreach (var role in userRolesName)
+            {
+                if (!model.Roles.Contains(role))
+                {
+                    var resultDeleteRole = await _roleService.RemoveRoleOnUserAsync(user, role);
+                    if (!resultDeleteRole.Success)
+                    {
+                        result.Errors = resultDeleteRole.Errors;
+                    }
+                }
+            }
+
             return Ok(result);
         }
 
-        [Permission(PermissionName.AccessToAdminPanel)]
-        [HttpGet("permissions-admin-panel")]
-        public async Task<IActionResult> GetCurrentUserAdminPanelPermissions()
+        [HttpPost("update-punishments")]
+        [Permission(PermissionName.UpdateUserPunishment)]
+        public async Task<IActionResult> UpdateUserPunishments([FromBody] UpdateUserPunishmentDto model)
         {
-            var userPermissions = await _userService.GetCurrentUserAdminPanelPermissionsAsync();
-            return Ok(userPermissions);
+            var result = await _userService.UpdateUserPunishmentAsync(model.Username, model.BanishmentEnd, model.LockoutEnd);
+            return Ok(result);
         }
     }
 }

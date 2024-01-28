@@ -19,9 +19,17 @@ namespace NewSky.API.Controllers
             _mapper = mapper;
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetRolesAsync()
+        {
+            var roles = await _roleService.GetRolesAsync();
+            var rolesNames = roles.Select(x => x.Name).ToList();  
+            return Ok(rolesNames);
+        }
+
         [HttpPut("create")]
         [Permission(PermissionName.CreateRole)]
-        public async Task<IActionResult> CreateRole(RoleDto roleDto)
+        public async Task<IActionResult> CreateRoleAsync(RoleDto roleDto)
         {
             var role = _mapper.Map<Role>(roleDto);
             var resultCreation = await _roleService.CreateRoleAsync(role, roleDto.Permissions);
@@ -30,7 +38,7 @@ namespace NewSky.API.Controllers
 
         [HttpPatch("update")]
         [Permission(PermissionName.UpdateRole)]
-        public async Task<IActionResult> UpdateRole(RoleDto roleDto)
+        public async Task<IActionResult> UpdateRoleAsync(RoleDto roleDto)
         {
             var role = _mapper.Map<Role>(roleDto);
             var resultUpdate = await _roleService.UpdateRoleAsync(role, roleDto.Permissions);
@@ -39,7 +47,7 @@ namespace NewSky.API.Controllers
 
         [HttpDelete("delete")]
         [Permission(PermissionName.DeleteRole)]
-        public async Task<IActionResult> DeleteRole(string roleName)
+        public async Task<IActionResult> DeleteRoleAsync(string roleName)
         {
             var resultDelete = await _roleService.DeleteRoleAsync(roleName);
             return Ok(resultDelete);

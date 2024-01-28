@@ -95,7 +95,7 @@ namespace NewSky.API.Services
             return categories;
         }
 
-        public async Task<List<TebexSaleDto>> GetSalesAsync(int pageNumber)
+        public async Task<TebexSalesPagedDto> GetSalesAsync(int pageNumber)
         {
             var response = await _pluginApi.GetAsync($"payments?paged={pageNumber}");
             response.EnsureSuccessStatusCode();
@@ -124,20 +124,26 @@ namespace NewSky.API.Services
                     {
                         Id = int.Parse(package["id"].ToString()),
                         Name = package["name"].ToString(),
-                        Quantity = int.Parse(package["quantity"].ToString())
+                        Quantity = int.Parse(package["quantity"].ToString()),
 
                     });
                 }
                 sales.Add(tebexSale);
             }
 
+            var tebexSalesPagedDto = new TebexSalesPagedDto()
+            {
+                Sales = sales,
+                TotalCount = int.Parse(JObject.Parse(responseContent)["total"].ToString())
+            };
+
             var cacheEntryOptions = new MemoryCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
             };
-            _memoryCache.Set("sales", sales, cacheEntryOptions);
+            _memoryCache.Set($"sales?paged={pageNumber}", tebexSalesPagedDto, cacheEntryOptions);
 
-            return sales;
+            return tebexSalesPagedDto;
         }
 
         public async Task<PackageManageResult> ManagePackageOnCartAsync(int userId, long packageTebexId, int quantity)
@@ -176,7 +182,7 @@ namespace NewSky.API.Services
                     else
                     {
                         existingPackage.Quantity = quantity;
-                        var updateResult = await _userPackageRepository.UpdateAsync(existingPackage, existingPackage.Id);
+                        var updateResult = await _userPackageRepository.UpdateAsync(existingPackage.Id);
                         if (!updateResult.IsSuccess)
                         {
                             result.Result.Errors.Add(updateResult.Errors.Select(e => e.Message).First());
@@ -257,10 +263,6 @@ namespace NewSky.API.Services
             return linkTebexCart;
         }
 
-
-
-
-
         private async Task VerifyPackageInformationAsync(List<TebexPackageDto> tebexPackages)
         {
             var packages = _mapper.Map<List<Package>>(tebexPackages);
@@ -276,7 +278,8 @@ namespace NewSky.API.Services
                 }
                 else if (!currentPackage.Equals(package))
                 {
-                    var result = await _packageRepository.UpdateAsync(package, currentPackage.Id);
+                    _mapper.Map(package, currentPackage);
+                    var result = await _packageRepository.UpdateAsync(currentPackage.Id);
                 }
                 storedPackages.Remove(currentPackage);
             }

@@ -26,26 +26,23 @@ namespace NewSky.API.Services
         private readonly IRepository<User> _userRepository;
         private readonly HttpClient _httpClient;
         private readonly IMapper _mapper;
-        private readonly IRepository<Role> _roleRepository;
 
         public UserService(IHttpContextAccessor httpContextAccessor,
                            IRepository<User> userRepository,
                            HttpClient httpClient,
-                           IMapper mapper,
-                           IRepository<Role> roleRepository)
+                           IMapper mapper)
         {
             _httpContextAccessor = httpContextAccessor;
             _userRepository = userRepository;
             _httpClient = httpClient;
             _mapper = mapper;
-            _roleRepository = roleRepository;
         }
 
         public async Task<BaseResult> UpdateEmailAsync(string email)
         {
             var user = await GetCurrentUserAsync();
-            var newUser = _mapper.Map<User>(user);
-            var result = await _userRepository.UpdateAsync(newUser, newUser.Id);
+            user.Email = email;
+            var result = await _userRepository.UpdateAsync(user.Id);
             var baseResult = new BaseResult()
             {
                 Errors = result.Errors.Select(x => x.Message).ToList()
@@ -53,22 +50,55 @@ namespace NewSky.API.Services
             return baseResult;
         }
 
+        public async Task<BaseResult> UpdateUserUsernameAsync(string userUuid, string userUsername)
+        {
+            var user = await _userRepository.Query().FirstOrDefaultAsync(x => x.UUID == userUuid);
+            if (user == null)
+            {
+                return new BaseResult() { Errors = new List<string>() { "Aucun Utilisateur trouvé" } };
+            }
+            var uuid = await GetUserUUIDAsync(userUsername);
+            if (uuid == string.Empty)
+            {
+                return new BaseResult() { Errors = new List<string>() { "Ce nom n'est pas lié à un compte mojang" } };
+            }
+
+            user.UserName = userUsername;
+            var resultUpdate = await _userRepository.UpdateAsync(user.Id);
+            if (!resultUpdate.IsSuccess)
+            {
+                return new BaseResult() { Errors = resultUpdate.Errors.Select(x => x.Message).ToList() };
+            }
+
+            return new BaseResult();
+        }
+
+        public async Task<BaseResult> UpdateUserPunishmentAsync(string username, DateTime? banishmentEnd, DateTime? lockoutEnd)
+        {
+            var user = await _userRepository.Query().FirstOrDefaultAsync(x => x.UserName == username);
+            if (user == null)
+            {
+                return new BaseResult() { Errors = new List<string>() { "Aucun Utilisateur trouvé" } };
+            }
+            user.BanishmentEnd = (DateTime)(banishmentEnd == null ? DateTime.Now : banishmentEnd);
+            user.LockoutEnd = (DateTime)(lockoutEnd == null ? DateTime.Now : lockoutEnd);
+            var resultUpdate = await _userRepository.UpdateAsync(user.Id);
+
+            return new BaseResult() { Errors = resultUpdate.Errors.Select(x => x.Message).ToList() };
+        }
+
+        public async Task<User> GetUserByUuid(string uuid, bool includesPackages = false, bool includeRoles = false, bool includePermissions = false)
+        {
+            var userQuery = QueryUser(includesPackages, includeRoles, includePermissions);
+
+            var user = await userQuery.FirstOrDefaultAsync(x => x.UUID == uuid);
+
+            return user;
+        }
+
         public async Task<User> GetCurrentUserAsync(bool includesPackages = false, bool includeRoles = false, bool includePermissions = false)
         {
-            var userQuery = _userRepository.Query();
-
-            if (includesPackages)
-            {
-                userQuery = userQuery.Include(x => x.Packages).ThenInclude(x => x.Package);
-            }
-            if (includeRoles)
-            {
-                userQuery = userQuery.Include(x => x.Roles).ThenInclude(x => x.Role);
-            }
-            if (includePermissions)
-            {
-                userQuery = userQuery.Include(x => x.Roles).ThenInclude(x => x.Role).ThenInclude(x => x.Permissions).ThenInclude(x => x.Permission);
-            }
+            var userQuery = QueryUser(includesPackages, includeRoles, includePermissions);
 
             var user = await userQuery.FirstOrDefaultAsync(x => x.UserName == _httpContextAccessor.HttpContext.User.Identity.Name);
 
@@ -97,14 +127,14 @@ namespace NewSky.API.Services
             do
             {
                 response = await _httpClient.GetAsync($"https://api.mojang.com/users/profiles/minecraft/{username}");
-                if( response.StatusCode != HttpStatusCode.OK || response.StatusCode == HttpStatusCode.TooManyRequests)
+                if (response.StatusCode != HttpStatusCode.OK || response.StatusCode == HttpStatusCode.TooManyRequests)
                 {
                     return uuid;
                 }
 
                 await Task.Delay(1000);
             }
-            while(response.StatusCode == HttpStatusCode.TooManyRequests);
+            while (response.StatusCode == HttpStatusCode.TooManyRequests);
 
             var content = await response.Content.ReadAsStringAsync();
             var jsonContent = JObject.Parse(content);
@@ -114,37 +144,6 @@ namespace NewSky.API.Services
                 //uuid = uuid.Insert(8, "-").Insert(13, "-").Insert(18, "-").Insert(23, "-");
             }
             return uuid;
-        }
-
-        public async Task<AdminPanelPermissionDto> GetCurrentUserAdminPanelPermissionsAsync()
-        {
-            var user = await GetCurrentUserAsync(includePermissions: true);
-            var result = new AdminPanelPermissionDto()
-            {
-                // Access
-                AccessToSalesOnAdminPanel = HasPermission(user, PermissionName.AccessToSalesOnAdminPanel),
-                AccessToUsersOnAdminPanel = HasPermission(user, PermissionName.AccessToUsersOnAdminPanel),
-                AccessToVotesOnAdminPanel = HasPermission(user, PermissionName.AccessToVotesOnAdminPanel),
-                AccessToGeneralSettingsOnAdminPanel = HasPermission(user, PermissionName.AccessToGeneralSettingsOnAdminPanel),
-
-                // Create
-                CreateRole = HasPermission(user, PermissionName.CreateRole),
-
-                // Update
-                UpdateUserPermissions = HasPermission(user, PermissionName.UpdateUserPermissions),
-                UpdateUserUserName = HasPermission(user, PermissionName.UpdateUserUserName),
-                UpdateUserStatus = HasPermission(user, PermissionName.UpdateUserStatus),
-                ManageUserCart = HasPermission(user, PermissionName.ManageUserCart),
-                UpdateGeneralSettings = HasPermission(user, PermissionName.UpdateGeneralSettings),
-                UpdateUserRole = HasPermission(user, PermissionName.UpdateUserRole),
-                UpdateRole = HasPermission(user, PermissionName.UpdateRole),
-
-                // Delete
-                DeleteRole = HasPermission(user, PermissionName.DeleteRole),
-            };
-
-
-            return result;
         }
 
         public bool HasPermission(User user, string permissionName)
@@ -178,6 +177,9 @@ namespace NewSky.API.Services
         {
             var usersFilterByCategories = new List<UsersFilterByCategory>();
             var usersQueryable = _userRepository.Query().Include(x => x.Roles).ThenInclude(x => x.Role).AsQueryable();
+            var users = new List<User>();
+            var alphabetAndNumbers = new List<string> { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+
 
             if (paramsFilter.Search != null)
             {
@@ -187,21 +189,27 @@ namespace NewSky.API.Services
             switch (paramsFilter.Filter)
             {
                 case "username":
-                    var users = new List<User>();
+
                     if (paramsFilter.Direction == "asc")
-                        users = usersQueryable.ToList().OrderBy(x => x.UserName, new CustomStringComparer())
+                        users = usersQueryable.ToList().OrderBy(x =>
+                                            char.IsLetter(x.UserName[0]) ? 0 :
+                                            char.IsDigit(x.UserName[0]) ? 1 :
+                                            2)
+                                        .ThenBy(x => x.UserName)
                                         .Skip((paramsFilter.PageNumber - 1) * paramsFilter.PageSize)
                                         .Take(paramsFilter.PageSize).ToList();
 
                     else
+                    {
                         users = await usersQueryable.OrderByDescending(x => x.UserName)
-                                        .Skip((paramsFilter.PageNumber - 1) * paramsFilter.PageSize)
-                                        .Take(paramsFilter.PageSize)
-                                        .ToListAsync();
+                                    .Skip((paramsFilter.PageNumber - 1) * paramsFilter.PageSize)
+                                    .Take(paramsFilter.PageSize)
+                                    .ToListAsync();
 
-                    var x = users.Select(x => x.UserName).ToList(); 
-                    var firstChars = new List<string> { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
-                    foreach (var character in firstChars)
+                        alphabetAndNumbers.Reverse();
+                    }
+
+                    foreach (var character in alphabetAndNumbers)
                     {
                         var userOfCategory = users.Where(x => x.UserName.ToLower().StartsWith(character)).ToList();
                         if (userOfCategory.Any())
@@ -226,37 +234,56 @@ namespace NewSky.API.Services
                     break;
 
                 case "uuid":
+                    if (paramsFilter.Direction == "asc")
+                        users = usersQueryable.ToList().OrderBy(x =>
+                                            char.IsLetter(x.UUID[0]) ? 0 :
+                                            char.IsDigit(x.UUID[0]) ? 1 :
+                                            2)
+                                        .Skip((paramsFilter.PageNumber - 1) * paramsFilter.PageSize)
+                                        .Take(paramsFilter.PageSize).ToList();
 
-
-
-
-
-
-
-
-                    break;
-
-                case "role":
-                    var roles = await _roleRepository.Query().ToListAsync();
-
-                    foreach (var role in roles)
+                    else
                     {
-                        var userByRole = new UsersFilterByCategory();
-                        var userInRole = await _userRepository.Query().Include(x => x.Roles).ThenInclude(x => x.Role)
-                                                                      .Where(x => x.Roles.Select(x => x.Role.Name).Contains(role.Name))
-                                                                      .ToListAsync();
 
+                        users = await usersQueryable.OrderByDescending(x => x.UUID)
+                                        .Skip((paramsFilter.PageNumber - 1) * paramsFilter.PageSize)
+                                        .Take(paramsFilter.PageSize)
+                                        .ToListAsync();
+                        alphabetAndNumbers.Reverse();
                     }
-
+                    foreach (var character in alphabetAndNumbers)
+                    {
+                        var userOfCategory = users.Where(x => x.UUID.ToLower().StartsWith(character)).ToList();
+                        if (userOfCategory.Any())
+                        {
+                            usersFilterByCategories.Add(new UsersFilterByCategory
+                            {
+                                CategoryName = character,
+                                Users = _mapper.Map<List<UserDto>>(userOfCategory)
+                            });
+                        }
+                        users.RemoveAll(x => userOfCategory.Contains(x));
+                    }
+                    if (users.Any())
+                    {
+                        usersFilterByCategories.Add(new UsersFilterByCategory
+                        {
+                            CategoryName = "*",
+                            Users = _mapper.Map<List<UserDto>>(users)
+                        });
+                    }
 
                     break;
 
                 default:
                     if (paramsFilter.Direction == "asc")
-                        users = await usersQueryable.OrderBy(x => x.UserName)
+                        users = usersQueryable.ToList().OrderBy(x =>
+                                            char.IsLetter(x.UserName[0]) ? 0 :
+                                            char.IsDigit(x.UserName[0]) ? 1 :
+                                            2)
+                                        .ThenBy(x => x.UserName)
                                         .Skip((paramsFilter.PageNumber - 1) * paramsFilter.PageSize)
-                                        .Take(paramsFilter.PageSize)
-                                        .ToListAsync();
+                                        .Take(paramsFilter.PageSize).ToList();
 
                     else
                         users = await usersQueryable.OrderByDescending(x => x.UserName)
@@ -274,15 +301,37 @@ namespace NewSky.API.Services
 
             }
 
+            var totalCount = usersQueryable.ToListAsync().GetAwaiter().GetResult().Count;
+
             var result = new PaginedResult<UsersFilterByCategory>
             {
                 Items = usersFilterByCategories,
                 PageNumber = paramsFilter.PageNumber,
                 PageSize = paramsFilter.PageSize,
-                TotalCount = await _userRepository.Query().CountAsync()
+                TotalCount = totalCount,
             };
 
             return result;
+        }
+
+        private IQueryable<User> QueryUser(bool includesPackages = false, bool includeRoles = false, bool includePermissions = false)
+        {
+            var userQuery = _userRepository.Query();
+
+            if (includesPackages)
+            {
+                userQuery = userQuery.Include(x => x.Packages).ThenInclude(x => x.Package);
+            }
+            if (includeRoles)
+            {
+                userQuery = userQuery.Include(x => x.Roles).ThenInclude(x => x.Role);
+            }
+            if (includePermissions)
+            {
+                userQuery = userQuery.Include(x => x.Roles).ThenInclude(x => x.Role).ThenInclude(x => x.Permissions).ThenInclude(x => x.Permission);
+            }
+
+            return userQuery;
         }
     }
 }

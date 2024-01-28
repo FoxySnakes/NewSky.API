@@ -7,7 +7,7 @@ namespace NewSky.API.Services.Interface
     {
         Task<List<TebexCategoryDto>> GetCategoriesAsync(bool withPackages);
 
-        Task<List<TebexSaleDto>> GetSalesAsync(int pageNumber);
+        Task<TebexSalesPagedDto> GetSalesAsync(int pageNumber);
 
         Task<PackageManageResult> ManagePackageOnCartAsync(int userId, long packageTebexId, int quantity);
 

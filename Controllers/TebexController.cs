@@ -38,17 +38,16 @@ namespace NewSky.API.Controllers
         [HttpGet("last-sales")]
         public async Task<IActionResult> GetLastSalesAsync()
         {
-            if (_memoryCache.TryGetValue("sales", out List<TebexSaleDto> tebexSales))
+            if (_memoryCache.TryGetValue("sales?paged=1", out TebexSalesPagedDto tebexSales))
             {
-                return Ok(tebexSales.Where(x => x.Status == "Complete").Take(5).ToList());
+                return Ok(tebexSales.Sales.Where(x => x.Status == "Complete").Take(5).ToList());
             }
-            var sales = await _tebexService.GetSalesAsync(1);
-            var lastBuyers = sales.Where(x => x.Status == "Complete").Take(5).ToList();
+            tebexSales = await _tebexService.GetSalesAsync(1);
+            var lastBuyers = tebexSales.Sales.Where(x => x.Status == "Complete").Take(5).ToList();
             return Ok(lastBuyers);
         }
 
         [HttpPost("manage-package")]
-        [Permission(PermissionName.ManageUserCart)]
         public async Task<IActionResult> ManagePackageOnCart([FromBody] ManagePackageDto addPackageDto)
         {
             var user = await _userService.GetCurrentUserAsync();
@@ -57,7 +56,6 @@ namespace NewSky.API.Controllers
         }
 
         [HttpDelete("clear-cart")]
-        [Permission(PermissionName.ManageUserCart)]
         public async Task<IActionResult> ClearUserCart()
         {
             var user = await _userService.GetCurrentUserAsync();
@@ -66,12 +64,22 @@ namespace NewSky.API.Controllers
         }
 
         [HttpGet("cart-link")]
-        [Permission(PermissionName.ManageUserCart)]
         public async Task<IActionResult> GetLinkUserCart()
         {
             var user = await _userService.GetCurrentUserAsync();
             var linkUser = await _tebexService.GetLinkTebexCartAsync(user.Id);
             return Ok(new { linkUserCart = linkUser });
+        }
+
+        [HttpGet("sales")]
+        public async Task<IActionResult> GetSales([FromQuery] int paged = 1, [FromQuery] bool refresh = false)
+        {
+            if (!refresh && _memoryCache.TryGetValue($"sales?paged={paged}", out TebexSalesPagedDto tebexSalesPagedDto))
+            {
+                return Ok(tebexSalesPagedDto);
+            }
+            tebexSalesPagedDto = await _tebexService.GetSalesAsync(paged);
+            return Ok(tebexSalesPagedDto);
         }
     }
 }

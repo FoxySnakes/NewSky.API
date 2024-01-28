@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NewSky.API.Data;
 
@@ -11,9 +12,11 @@ using NewSky.API.Data;
 namespace NewSky.API.Migrations
 {
     [DbContext(typeof(NewSkyDbContext))]
-    partial class NewSkyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240127143723_change-permission-name-id")]
+    partial class changepermissionnameid
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -464,8 +467,8 @@ namespace NewSky.API.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("BanishmentEnd")
-                        .HasColumnType("datetime2");
+                    b.Property<TimeSpan>("BanishmentEnd")
+                        .HasColumnType("time");
 
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
@@ -480,8 +483,8 @@ namespace NewSky.API.Migrations
                     b.Property<bool>("IsLocked")
                         .HasColumnType("bit");
 
-                    b.Property<DateTime>("LockoutEnd")
-                        .HasColumnType("datetime2");
+                    b.Property<TimeSpan>("LockoutEnd")
+                        .HasColumnType("time");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()

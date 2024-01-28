@@ -37,11 +37,6 @@ namespace NewSky.API.Controllers
         public async Task<IActionResult> Login([FromBody] LoginDto model)
         {
             var result = await _authService.TryLoginAsync(model.UsernameOrEmail, model.Password);
-            if(result.IsSuccess)
-            {
-                var user = await _userService.GetCurrentUserAsync();
-                result.User = _mapper.Map<UserDto>(user);
-            }
             return Ok(result);
         }
 
@@ -95,7 +90,7 @@ namespace NewSky.API.Controllers
                 if (result.IsSuccess)
                     success++;
             }
-            return Ok(success);
+            return Ok($"{success} / {userNames.Count()}");
         }
     }
 }

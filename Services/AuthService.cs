@@ -56,20 +56,20 @@ namespace NewSky.API.Services
                 {
                     result.IsSuccess = false;
                     user.AccessFailedCount++;
-                    var updateResult = await _userRepository.UpdateAsync(user, user.Id);
+                    var updateResult = await _userRepository.UpdateAsync(user.Id);
                     if (updateResult.IsSuccess)
                     {
                         if (user.AccessFailedCount == 3)
                         {
-                            user.LockoutEnd = TimeSpan.FromHours(1);
+                            user.LockoutEnd = DateTime.Now.AddHours(1);
                         }
                         else if (user.AccessFailedCount == 4)
                         {
-                            user.LockoutEnd = TimeSpan.FromDays(1);
+                            user.LockoutEnd = DateTime.Now.AddDays(1);
                         }
                         else if (user.AccessFailedCount >= 5)
                         {
-                            user.LockoutEnd = TimeSpan.MaxValue;
+                            user.LockoutEnd = DateTime.MaxValue;
                         }
                     }
                 }
@@ -119,7 +119,7 @@ namespace NewSky.API.Services
             {
                 user.PasswordHash = _securityService.HashPassword(newPassword);
                 user.AccessFailedCount = 0;
-                var changeResult = await _userRepository.UpdateAsync(user, user.Id);
+                var changeResult = await _userRepository.UpdateAsync(user.Id);
                 return new AccountManageResult() { Error = null};
             }
             return new AccountManageResult() { Error = "Mot de passe incorrect" };
@@ -135,8 +135,8 @@ namespace NewSky.API.Services
 
                 if (resultLogin.IsSuccess)
                 {
-                    user.LockoutEnd = TimeSpan.MaxValue;
-                    var updateResult = await _userRepository.UpdateAsync(user, user.Id);
+                    user.LockoutEnd = DateTime.MaxValue;
+                    var updateResult = await _userRepository.UpdateAsync(user.Id);
 
                     if (!updateResult.IsSuccess)
                     {

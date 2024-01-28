@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -119,21 +120,91 @@ namespace NewSky.API.Data
         private void SeedData(ModelBuilder modelBuilder)
         {
             // Permissions
-            var permissionIdByName = new Dictionary<string, int>();
-            var i = 1;
-            foreach (var property in typeof(PermissionName).GetFields())
-            {
-                modelBuilder.Entity<Permission>()
-                    .HasData(new Permission
+            modelBuilder.Entity<Permission>()
+                .HasData(new List<Permission>
+                {
+                    new Permission
                     {
-                        Id = i,
-                        Name = (string)property.GetValue(null),
-                        Description = property.GetCustomAttribute<DescriptionAttribute>().Description
-                    });
-                permissionIdByName.Add((string)property.GetValue(null), i);
-                i++;
-            }
-            
+                        Id = -1,
+                        Name = PermissionName.AccessToAdminPanel,
+                        Description = typeof(PermissionName).GetField(nameof(PermissionName.AccessToAdminPanel)).GetCustomAttribute<DescriptionAttribute>().Description
+                    },
+                    new Permission
+                    {
+                        Id = -2,
+                        Name = PermissionName.AccessToDashboardOnAdminPanel,
+                        Description = typeof(PermissionName).GetField(nameof(PermissionName.AccessToDashboardOnAdminPanel)).GetCustomAttribute<DescriptionAttribute>().Description
+                    },
+                    new Permission
+                    {
+                        Id = -3,
+                        Name = PermissionName.AccessToSalesOnAdminPanel,
+                        Description = typeof(PermissionName).GetField(nameof(PermissionName.AccessToSalesOnAdminPanel)).GetCustomAttribute<DescriptionAttribute>().Description
+                    },
+                    new Permission
+                    {
+                        Id = -4,
+                        Name = PermissionName.AccessToUsersOnAdminPanel,
+                        Description = typeof(PermissionName).GetField(nameof(PermissionName.AccessToUsersOnAdminPanel)).GetCustomAttribute<DescriptionAttribute>().Description
+                    },
+                    new Permission
+                    {
+                        Id = -5,
+                        Name = PermissionName.AccessToVotesOnAdminPanel,
+                        Description = typeof(PermissionName).GetField(nameof(PermissionName.AccessToVotesOnAdminPanel)).GetCustomAttribute<DescriptionAttribute>().Description
+                    },
+                    new Permission
+                    {
+                        Id = -6,
+                        Name = PermissionName.AccessToGeneralSettingsOnAdminPanel,
+                        Description = typeof(PermissionName).GetField(nameof(PermissionName.AccessToGeneralSettingsOnAdminPanel)).GetCustomAttribute<DescriptionAttribute>().Description
+                    },
+                    new Permission
+                    {
+                        Id = -7,
+                        Name = PermissionName.CreateRole,
+                        Description = typeof(PermissionName).GetField(nameof(PermissionName.CreateRole)).GetCustomAttribute<DescriptionAttribute>().Description
+                    },
+                    new Permission
+                    {
+                        Id = -8,
+                        Name = PermissionName.UpdateUserInformations,
+                        Description = typeof(PermissionName).GetField(nameof(PermissionName.UpdateUserInformations)).GetCustomAttribute<DescriptionAttribute>().Description
+                    },
+                    new Permission
+                    {
+                        Id = -9,
+                        Name = PermissionName.UpdateUserPunishment,
+                        Description = typeof(PermissionName).GetField(nameof(PermissionName.UpdateUserPunishment)).GetCustomAttribute<DescriptionAttribute>().Description
+                    },
+                    new Permission
+                    {
+                        Id = -10,
+                        Name = PermissionName.UpdateGeneralSettings,
+                        Description = typeof(PermissionName).GetField(nameof(PermissionName.UpdateGeneralSettings)).GetCustomAttribute<DescriptionAttribute>().Description
+                    },
+                    new Permission
+                    {
+                        Id = -11,
+                        Name = PermissionName.UpdateUserRole,
+                        Description = typeof(PermissionName).GetField(nameof(PermissionName.UpdateUserRole)).GetCustomAttribute<DescriptionAttribute>().Description
+                    },
+                    new Permission
+                    {
+                        Id = -12,
+                        Name = PermissionName.UpdateRole,
+                        Description = typeof(PermissionName).GetField(nameof(PermissionName.UpdateRole)).GetCustomAttribute<DescriptionAttribute>().Description
+                    },
+                    new Permission
+                    {
+                        Id = -13,
+                        Name = PermissionName.DeleteRole,
+                        Description = typeof(PermissionName).GetField(nameof(PermissionName.DeleteRole)).GetCustomAttribute<DescriptionAttribute>().Description
+                    },
+                });
+
+
+
             // Player Role
             modelBuilder.Entity<Role>()
                 .HasData(new Role
@@ -142,16 +213,6 @@ namespace NewSky.API.Data
                     Name = DefaultRole.Player,
                     Description = typeof(DefaultRole).GetField(nameof(DefaultRole.Player)).GetCustomAttribute<DescriptionAttribute>().Description,
                     IsDefault = true,
-                });
-
-            modelBuilder.Entity<RolePermission>()
-                .HasData(new RolePermission
-                {
-                    Id = -1,
-                    RoleId = -1,
-                    PermissionId = permissionIdByName[PermissionName.ManageUserCart],
-                    IsEditable = false,
-                    HasPermission = true
                 });
 
             // Owner Role
@@ -164,17 +225,115 @@ namespace NewSky.API.Data
                     IsDefault = true,
                 });
 
+            // Set Owner Role Permission
             modelBuilder.Entity<RolePermission>()
-                .HasData(Enumerable.Range(1, permissionIdByName.Count)
-                    .Select(id => new RolePermission
+                .HasData(new List<RolePermission>
+                {
+                    new RolePermission
                     {
-                        Id = -(id + 1),
+                        Id = -50,
                         RoleId = -2,
-                        PermissionId = id,
+                        PermissionId = -1,
                         IsEditable = false,
                         HasPermission = true
-                    })
-                    .ToArray());
+                    },
+                    new RolePermission
+                    {
+                        Id = -51,
+                        RoleId = -2,
+                        PermissionId = -2,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -52,
+                        RoleId = -2,
+                        PermissionId = -3,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -53,
+                        RoleId = -2,
+                        PermissionId = -4,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -54,
+                        RoleId = -2,
+                        PermissionId = -5,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -55,
+                        RoleId = -2,
+                        PermissionId = -6,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -56,
+                        RoleId = -2,
+                        PermissionId = -7,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -57,
+                        RoleId = -2,
+                        PermissionId = -8,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -58,
+                        RoleId = -2,
+                        PermissionId = -9,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -59,
+                        RoleId = -2,
+                        PermissionId = -10,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -60,
+                        RoleId = -2,
+                        PermissionId = -11,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -61,
+                        RoleId = -2,
+                        PermissionId = -12,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -62,
+                        RoleId = -2,
+                        PermissionId = -13,
+                        IsEditable = false,
+                        HasPermission = true
+                    }
+                });
 
 
             // WebSite Developer Role
@@ -187,18 +346,114 @@ namespace NewSky.API.Data
                     IsDefault = true,
                 });
 
-
             modelBuilder.Entity<RolePermission>()
-                .HasData(Enumerable.Range(1, permissionIdByName.Count)
-                    .Select(id => new RolePermission
+                .HasData(new List<RolePermission>
+                {
+                    new RolePermission
                     {
-                        Id = -(id + 1 + permissionIdByName.Count),
+                        Id = -100,
                         RoleId = -3,
-                        PermissionId = id,
+                        PermissionId = -1,
                         IsEditable = false,
                         HasPermission = true
-                    })
-                    .ToArray());
+                    },
+                    new RolePermission
+                    {
+                        Id = -101,
+                        RoleId = -3,
+                        PermissionId = -2,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -102,
+                        RoleId = -3,
+                        PermissionId = -3,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -103,
+                        RoleId = -3,
+                        PermissionId = -4,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -104,
+                        RoleId = -3,
+                        PermissionId = -5,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -105,
+                        RoleId = -3,
+                        PermissionId = -6,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -106,
+                        RoleId = -3,
+                        PermissionId = -7,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -107,
+                        RoleId = -3,
+                        PermissionId = -8,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -108,
+                        RoleId = -3,
+                        PermissionId = -9,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -109,
+                        RoleId = -3,
+                        PermissionId = -10,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -110,
+                        RoleId = -3,
+                        PermissionId = -11,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -111,
+                        RoleId = -3,
+                        PermissionId = -12,
+                        IsEditable = false,
+                        HasPermission = true
+                    },
+                    new RolePermission
+                    {
+                        Id = -112,
+                        RoleId = -3,
+                        PermissionId = -13,
+                        IsEditable = false,
+                        HasPermission = true
+                    }
+                });
         }
     }
 }

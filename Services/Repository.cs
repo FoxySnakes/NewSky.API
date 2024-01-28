@@ -50,44 +50,12 @@ namespace NewSky.API.Services
             return result;
         }
 
-        public async Task<DbOperationResult<T>> UpdateAsync(T newEntity, int id)
+        public async Task<DbOperationResult<T>> UpdateAsync(int id)
         {
             var dbOperationResult = new DbOperationResult<T>();
-            var entity = await _dbContext.Set<T>().FindAsync(id);
-            if (entity == null)
-            {
-                dbOperationResult.Errors.Add(new DbError(DbErrorCode.DbNoEntityWithId, id.ToString()));
-                dbOperationResult.Entity = null;
-            }
-            else
-            { 
-                var hasChanges = false;
-                var keyPropertiesNames = _dbContext.Model.FindEntityType(typeof(T)).FindPrimaryKey().Properties.Select(x => x.Name);
-                foreach (var property in typeof(T).GetProperties())
-                {
-                    if (!property.CanWrite || 
-                        property.GetSetMethod() == null || 
-                        keyPropertiesNames.Contains(property.Name) || 
-                        (!property.PropertyType.IsPrimitive && property.PropertyType != typeof(string)))
-                            continue;
-
-                    var currentValue = property.GetValue(entity);
-                    var newValue = property.GetValue(newEntity);
-
-                    if (!object.Equals(currentValue, newValue))
-                    {
-                        property.SetValue(entity, newValue);
-                        hasChanges = true;
-                    }
-                }
-                if (hasChanges)
-                {
-                    var changeNumber = await _dbContext.SaveChangesAsync();
-                    dbOperationResult.Entity = entity;
-                    dbOperationResult.Errors = changeNumber > 0 ? new List<DbError>() : new List<DbError> { new DbError(DbErrorCode.DbFailedDuringSave) };
-                }
-            }
-
+            var changeNumber = await _dbContext.SaveChangesAsync();
+            dbOperationResult.Errors = changeNumber > 0 ? new List<DbError>() : new List<DbError> { new DbError(DbErrorCode.DbFailedDuringSave) };
+            dbOperationResult.Entity = _dbContext.Set<T>().Find(id);
             return dbOperationResult;
         }
 

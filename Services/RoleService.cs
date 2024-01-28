@@ -4,6 +4,7 @@ using NewSky.API.Models.Db;
 using NewSky.API.Models.Dto;
 using NewSky.API.Models.Result;
 using NewSky.API.Services.Interface;
+using System.ComponentModel;
 using System.Diagnostics.Eventing.Reader;
 
 namespace NewSky.API.Services
@@ -25,6 +26,13 @@ namespace NewSky.API.Services
             _rolePermissionRepository = rolePermissionRepository;
             _permissionRepository = permissionRepository;
         }
+
+        public async Task<List<Role>> GetRolesAsync()
+        {
+            var roles = await _roleRepository.Query().ToListAsync();
+            return roles;
+        }
+
         public async Task<BaseResult> CreateRoleAsync(Role role, List<PermissionDto> permissions)
         {
             var result = new BaseResult();
@@ -76,7 +84,9 @@ namespace NewSky.API.Services
                 var updateResult = new DbOperationResult<Role>();
                 if (!role.IsDefault)
                 {
-                    updateResult = await _roleRepository.UpdateAsync(roleToUpdate, role.Id);
+                    role.Description = roleToUpdate.Description;
+                    role.Name = roleToUpdate.Name;
+                    updateResult = await _roleRepository.UpdateAsync(role.Id);
                 }
 
                 if (updateResult.IsSuccess)
@@ -102,8 +112,8 @@ namespace NewSky.API.Services
                             {
                                 if (permission.HasPermission != null)
                                 {
-                                    var rolePermissionToUpdate = new RolePermission { PermissionId = rolePermission.PermissionId, RoleId = rolePermission.RoleId, HasPermission = (bool)permission.HasPermission };
-                                    var updateRolePermissionResult = await _rolePermissionRepository.UpdateAsync(rolePermissionToUpdate, rolePermission.Id);
+                                rolePermission.HasPermission = (bool)permission.HasPermission;
+                                    var updateRolePermissionResult = await _rolePermissionRepository.UpdateAsync(rolePermission.Id);
 
                                     if (!updateRolePermissionResult.IsSuccess)
                                     {

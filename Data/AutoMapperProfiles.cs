@@ -44,8 +44,9 @@ namespace NewSky.API.Data
                         ExpirationDate = userpackage.Package.ExpirationDate,
                     },
                     Quantity = userpackage.Quantity,
-                })));
-
+                })))
+                .ForMember(dest => dest.BanishmentEnd, opt => opt.MapFrom(src => src.BanishmentEnd > DateTime.Now ? src.BanishmentEnd : (DateTime?)null))
+                .ForMember(dest => dest.LockoutEnd, opt => opt.MapFrom(src => src.LockoutEnd > DateTime.Now ? src.LockoutEnd : (DateTime?)null));
 
             CreateMap<UserDto, User>();
 

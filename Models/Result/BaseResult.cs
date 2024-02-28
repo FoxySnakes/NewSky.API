@@ -1,6 +1,4 @@
-﻿using static System.Runtime.InteropServices.JavaScript.JSType;
-
-namespace NewSky.API.Models.Result
+﻿namespace NewSky.API.Models.Result
 {
     public class BaseResult
     {

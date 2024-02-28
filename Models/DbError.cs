@@ -1,5 +1,4 @@
-﻿using NewSky.API.Models.Enums;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace NewSky.API.Models
 {

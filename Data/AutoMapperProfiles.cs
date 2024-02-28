@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Identity;
 using NewSky.API.Models.Db;
 using NewSky.API.Models.Dto;
 

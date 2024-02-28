@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-namespace NewSky.API.Models.Dto
+﻿namespace NewSky.API.Models.Dto
 {
     public class AdminPanelPermissionDto
     {

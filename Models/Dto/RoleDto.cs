@@ -1,6 +1,4 @@
-﻿using NewSky.API.Models.Db;
-
-namespace NewSky.API.Models.Dto
+﻿namespace NewSky.API.Models.Dto
 {
     public class RoleDto
     {

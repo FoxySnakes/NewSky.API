@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using NewSky.API.Models.Db;
 using NewSky.API.Models.Dto;
 using NewSky.API.Models.Result;
-using NewSky.API.Services;
 using NewSky.API.Services.Interface;
+using System.Data;
 
 namespace NewSky.API.Controllers
 {
@@ -16,14 +16,17 @@ namespace NewSky.API.Controllers
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
         private readonly IRoleService _roleService;
+        private readonly ILogger<UserController> _logger;
 
         public UserController(IUserService userService,
                               IMapper mapper,
-                              IRoleService roleService)
+                              IRoleService roleService,
+                              ILogger<UserController> logger)
         {
             _userService = userService;
             _mapper = mapper;
             _roleService = roleService;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -46,6 +49,13 @@ namespace NewSky.API.Controllers
         public async Task<IActionResult> UpdateUserEmail(string email)
         {
             var result = await _userService.UpdateEmailAsync(email);
+
+            if (!result.Success)
+            {
+                var user = await _userService.GetCurrentUserAsync();
+                _logger.LogError("Failed updating email from '{LastEmail}' to '{NewEmail}' for the user {UserName}", user.Email, email, user.UserName);
+            }
+
             return Ok(result);
         }
 
@@ -59,6 +69,7 @@ namespace NewSky.API.Controllers
             if(!resultUpdateUsername.Success)
             {
                 result.Errors = resultUpdateUsername.Errors;
+                _logger.LogError("Failed changing username from {LastUserName} to {NewUserName}", _userService.GetCurrentUserName(), model.UserName);
                 return Ok(result);
             }
 
@@ -72,6 +83,7 @@ namespace NewSky.API.Controllers
                     if (!resultAddRole.Success)
                     {
                         result.Errors = resultAddRole.Errors;
+                        _logger.LogError("Failed adding role {RoleName} on user {UserName}", role, user.UserName);
                     }
                 }
             }
@@ -86,9 +98,11 @@ namespace NewSky.API.Controllers
                     if (!resultDeleteRole.Success)
                     {
                         result.Errors = resultDeleteRole.Errors;
+                        _logger.LogError("Failed removing role {RoleName} on user {UserName}", role, user.UserName);
                     }
                 }
             }
+
 
             return Ok(result);
         }
@@ -98,6 +112,10 @@ namespace NewSky.API.Controllers
         public async Task<IActionResult> UpdateUserPunishments([FromBody] UpdateUserPunishmentDto model)
         {
             var result = await _userService.UpdateUserPunishmentAsync(model.Username, model.BanishmentEnd, model.LockoutEnd);
+
+            if(!result.Success)
+                _logger.LogError("Failed updating punishments for user {UserName}", model.Username);
+
             return Ok(result);
         }
     }

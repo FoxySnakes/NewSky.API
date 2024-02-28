@@ -1,22 +1,11 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using NewSky.API.Attributs;
-using NewSky.API.Extensions;
 using NewSky.API.Models.Db;
 using NewSky.API.Models.Dto;
 using NewSky.API.Models.Result;
 using NewSky.API.Services.Interface;
 using Newtonsoft.Json.Linq;
-using System.Diagnostics;
-using System.Globalization;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Reflection;
-using System.Security.Cryptography.Xml;
-using System.Text.RegularExpressions;
 
 namespace NewSky.API.Services
 {
@@ -26,16 +15,19 @@ namespace NewSky.API.Services
         private readonly IRepository<User> _userRepository;
         private readonly HttpClient _httpClient;
         private readonly IMapper _mapper;
+        private readonly ILogger<UserService> _logger;
 
         public UserService(IHttpContextAccessor httpContextAccessor,
                            IRepository<User> userRepository,
                            HttpClient httpClient,
-                           IMapper mapper)
+                           IMapper mapper,
+                           ILogger<UserService> logger)
         {
             _httpContextAccessor = httpContextAccessor;
             _userRepository = userRepository;
             _httpClient = httpClient;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<BaseResult> UpdateEmailAsync(string email)
@@ -168,6 +160,9 @@ namespace NewSky.API.Services
                         hasAccess = true;
                 }
             }
+
+            if(!hasAccess)
+                _logger.LogWarning("User {UserName} try to make an action without permission {PermissionName}",user.UserName,permissionName);
 
             return hasAccess;
         }

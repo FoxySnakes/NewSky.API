@@ -1,11 +1,10 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using NewSky.API.Models.Db;
 using NewSky.API.Models.Dto;
 using NewSky.API.Models.Result;
 using NewSky.API.Services.Interface;
-using Newtonsoft.Json.Linq;
+using System.Data;
 using System.Text.RegularExpressions;
 
 namespace NewSky.API.Services
@@ -17,14 +16,16 @@ namespace NewSky.API.Services
         private readonly ISecurityService _securityService;
         private readonly IUserService _userService;
         private readonly IRoleService _roleService;
+        private readonly ILogger<AuthService> _logger;
 
-        public AuthService(IRepository<User> userRepository, IMapper mapper, ISecurityService securityService, IUserService userService, IRoleService roleService)
+        public AuthService(IRepository<User> userRepository, IMapper mapper, ISecurityService securityService, IUserService userService, IRoleService roleService, ILogger<AuthService> logger)
         {
             _userRepository = userRepository;
             _mapper = mapper;
             _securityService = securityService;
             _userService = userService;
             _roleService = roleService;
+            _logger = logger;
         }
         public async Task<LoginResult> TryLoginAsync(string userNameOrEmail, string password)
         {
@@ -70,6 +71,7 @@ namespace NewSky.API.Services
                         else if (user.AccessFailedCount >= 5)
                         {
                             user.LockoutEnd = DateTime.MaxValue;
+                            _logger.LogWarning("A user try to access too many times on account '{UserName}'. Account blocked", user.UserName);
                         }
                     }
                 }

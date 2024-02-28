@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using NewSky.API.Models;
-using NewSky.API.Services.Interface;
+﻿using NewSky.API.Services.Interface;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 

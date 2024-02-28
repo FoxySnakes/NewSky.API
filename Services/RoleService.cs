@@ -1,11 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using NewSky.API.Models.Db;
 using NewSky.API.Models.Dto;
 using NewSky.API.Models.Result;
 using NewSky.API.Services.Interface;
-using System.ComponentModel;
-using System.Diagnostics.Eventing.Reader;
 
 namespace NewSky.API.Services
 {
@@ -97,40 +94,39 @@ namespace NewSky.API.Services
                             .Include(x => x.Permission)
                             .FirstOrDefaultAsync(x => x.Permission.Name == permission.Name && x.RoleId == role.Id);
 
-                            if (rolePermission == null && permission.HasPermission != null)
-                            {
-                                var permissionToAdd = await _permissionRepository.Query().FirstOrDefaultAsync(x => x.Name == permission.Name);
-                                var rolePermissionToCreate = new RolePermission { PermissionId = permissionToAdd.Id, RoleId = role.Id, HasPermission = (bool)permission.HasPermission };
-                                var createResult = await _rolePermissionRepository.CreateAsync(rolePermissionToCreate);
+                        if (rolePermission == null && permission.HasPermission != null)
+                        {
+                            var permissionToAdd = await _permissionRepository.Query().FirstOrDefaultAsync(x => x.Name == permission.Name);
+                            var rolePermissionToCreate = new RolePermission { PermissionId = permissionToAdd.Id, RoleId = role.Id, HasPermission = (bool)permission.HasPermission };
+                            var createResult = await _rolePermissionRepository.CreateAsync(rolePermissionToCreate);
 
-                                if (!createResult.IsSuccess)
+                            if (!createResult.IsSuccess)
+                            {
+                                result.Errors.Add(createResult.Errors.Select(x => x.Message).First());
+                            }
+                        }
+                        else if (rolePermission != null && rolePermission.HasPermission != permission.HasPermission && rolePermission.IsEditable)
+                        {
+                            if (permission.HasPermission != null)
+                            {
+                            rolePermission.HasPermission = (bool)permission.HasPermission;
+                                var updateRolePermissionResult = await _rolePermissionRepository.UpdateAsync(rolePermission.Id);
+
+                                if (!updateRolePermissionResult.IsSuccess)
                                 {
-                                    result.Errors.Add(createResult.Errors.Select(x => x.Message).First());
+                                    result.Errors.Add(updateRolePermissionResult.Errors.Select(x => x.Message).First());
                                 }
                             }
-                            else if (rolePermission != null && rolePermission.HasPermission != permission.HasPermission && rolePermission.IsEditable)
+                            else
                             {
-                                if (permission.HasPermission != null)
-                                {
-                                rolePermission.HasPermission = (bool)permission.HasPermission;
-                                    var updateRolePermissionResult = await _rolePermissionRepository.UpdateAsync(rolePermission.Id);
+                                var deleteResult = await _rolePermissionRepository.DeleteAsync(rolePermission.Id);
 
-                                    if (!updateRolePermissionResult.IsSuccess)
-                                    {
-                                        result.Errors.Add(updateRolePermissionResult.Errors.Select(x => x.Message).First());
-                                    }
-                                }
-                                else
+                                if (!deleteResult.IsSuccess)
                                 {
-                                    var deleteResult = await _rolePermissionRepository.DeleteAsync(rolePermission.Id);
-
-                                    if (!deleteResult.IsSuccess)
-                                    {
-                                        result.Errors.Add(deleteResult.Errors.Select(x => x.Message).First());
-                                    }
+                                    result.Errors.Add(deleteResult.Errors.Select(x => x.Message).First());
                                 }
                             }
-                        
+                        }
                     }
                 }
                 else

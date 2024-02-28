@@ -1,5 +1,4 @@
-﻿using NewSky.API.Models;
-using NewSky.API.Models.Dto;
+﻿using NewSky.API.Models.Dto;
 using NewSky.API.Models.Enums;
 
 namespace NewSky.API.Services.Interface

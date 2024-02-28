@@ -1,13 +1,11 @@
-﻿using NewSky.API.Models.Dto;
-using NewSky.API.Models.Enums;
-using NewSky.API.Services.Interface;
-using NewSky.API.Helpers;
-using Newtonsoft.Json.Linq;
-using System.Globalization;
-using System.Text.RegularExpressions;
+﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using NewSky.API.Models.Db;
-using AutoMapper;
+using NewSky.API.Models.Dto;
+using NewSky.API.Models.Enums;
+using NewSky.API.Services.Interface;
+using Newtonsoft.Json.Linq;
+using System.Text.RegularExpressions;
 
 namespace NewSky.API.Services
 {

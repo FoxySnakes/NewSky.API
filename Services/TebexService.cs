@@ -1,6 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
@@ -8,7 +6,6 @@ using NewSky.API.Models.Db;
 using NewSky.API.Models.Dto;
 using NewSky.API.Models.Result;
 using NewSky.API.Services.Interface;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
 
@@ -30,7 +27,6 @@ namespace NewSky.API.Services
             _mapper = mapper;
             _packageRepository = packageRepository;
             _userPackageRepository = userPackageRepository;
-
 
 
             _headlessApi = headlessApi;

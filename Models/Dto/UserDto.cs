@@ -1,8 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using NewSky.API.Models.Db;
-using System.Data;
-
-namespace NewSky.API.Models.Dto
+﻿namespace NewSky.API.Models.Dto
 {
     public class UserDto
     {

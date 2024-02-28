@@ -1,15 +1,8 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.Data.SqlClient;
 using NewSky.API.Data;
 using NewSky.API.Models;
-using NewSky.API.Models.Enums;
 using NewSky.API.Models.Result;
 using NewSky.API.Services.Interface;
-using System.Linq;
 
 namespace NewSky.API.Services
 {

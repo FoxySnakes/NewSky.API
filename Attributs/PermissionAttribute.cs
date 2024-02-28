@@ -19,7 +19,7 @@ public class PermissionAttribute : Attribute, IAsyncActionFilter
         var hasPermission = userService.HasPermission(user, _permissionName);
         if (!hasPermission)
         {
-            context.Result = new ForbidResult(); 
+            context.Result = new ForbidResult();
             return;
         }
 

@@ -1,8 +1,5 @@
-﻿using AutoMapper;
-using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.IdentityModel.Tokens;
 using NewSky.API.Models.Db;
-using NewSky.API.Models.Dto;
-using NewSky.API.Models.Result;
 using NewSky.API.Services.Interface;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -13,10 +10,12 @@ namespace NewSky.API.Services
     public class SecurityService : ISecurityService
     {
         private readonly IConfiguration _config;
+        private readonly ILogger<SecurityService> _logger;
 
-        public SecurityService(IConfiguration config)
+        public SecurityService(IConfiguration config, ILogger<SecurityService> logger)
         {
             _config = config;
+            _logger = logger;
         }
 
         public string GenerateToken(User user)

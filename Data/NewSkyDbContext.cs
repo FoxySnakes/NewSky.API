@@ -1,13 +1,8 @@
-﻿
-using Microsoft.AspNetCore.Http.Connections;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using NewSky.API.Models;
 using NewSky.API.Models.Db;
 using System.ComponentModel;
 using System.Reflection;
-using System.Text.RegularExpressions;
 
 namespace NewSky.API.Data
 {

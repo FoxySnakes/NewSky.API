@@ -1,5 +1,4 @@
-﻿using NewSky.API.Attributs;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 namespace NewSky.API.Models.Db
 {

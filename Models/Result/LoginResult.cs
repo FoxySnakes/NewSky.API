@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using NewSky.API.Models.Dto;
+﻿using NewSky.API.Models.Dto;
 
 namespace NewSky.API.Models.Result
 {

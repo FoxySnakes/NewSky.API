@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.ChangeTracking;
-using NewSky.API.Models;
+﻿using NewSky.API.Models;
 using NewSky.API.Models.Result;
 
 namespace NewSky.API.Services.Interface

@@ -1,18 +1,21 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
 using NewSky.API.Data;
 using NewSky.API.Middleware;
-using NewSky.API.Models.Db;
 using NewSky.API.Services;
 using NewSky.API.Services.Interface;
-using System.Text;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var logger = new LoggerConfiguration()
+    .WriteTo.File($"Logs/NewSky_logs-{DateTime.Now:yyyy-MM-dd}.txt", 
+                  rollingInterval:RollingInterval.Day)
+    .MinimumLevel.Warning()
+    .CreateLogger();
+
+builder.Logging.ClearProviders();
+builder.Logging.AddSerilog(logger);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

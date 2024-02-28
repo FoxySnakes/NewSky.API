@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
-using NewSky.API.Models.Db;
+using Microsoft.IdentityModel.Tokens;
 using NewSky.API.Models.Dto;
 using NewSky.API.Services.Interface;
 
@@ -14,12 +13,14 @@ namespace NewSky.API.Controllers
         private readonly ITebexService _tebexService;
         private readonly IMemoryCache _memoryCache;
         private readonly IUserService _userService;
+        private readonly ILogger<TebexController> _logger;
 
-        public TebexController(ITebexService tebexService, IMemoryCache memoryCache, IUserService userService)
+        public TebexController(ITebexService tebexService, IMemoryCache memoryCache, IUserService userService, ILogger<TebexController> logger)
         {
             _tebexService = tebexService;
             _memoryCache = memoryCache;
             _userService = userService;
+            _logger = logger;
         }
 
 
@@ -52,6 +53,10 @@ namespace NewSky.API.Controllers
         {
             var user = await _userService.GetCurrentUserAsync();
             var result = await _tebexService.ManagePackageOnCartAsync(user.Id, addPackageDto.PackageTebexId, addPackageDto.Quantity);
+
+            if (!result.Result.Success)
+                _logger.LogError("Failed adding x{Times} times package with Id {PackageId} for user {Username}", addPackageDto.Quantity, addPackageDto.PackageTebexId,user.UserName);
+
             return Ok(result);
         }
 
@@ -60,6 +65,10 @@ namespace NewSky.API.Controllers
         {
             var user = await _userService.GetCurrentUserAsync();
             var result = await _tebexService.ClearUserCartAsync(user.Id);
+
+            if (!result.Result.Success)
+                _logger.LogError("Failed clearing cart of user {Username}", user.UserName);
+
             return Ok(result);
         }
 
@@ -68,6 +77,10 @@ namespace NewSky.API.Controllers
         {
             var user = await _userService.GetCurrentUserAsync();
             var linkUser = await _tebexService.GetLinkTebexCartAsync(user.Id);
+
+            if (linkUser.IsNullOrEmpty())
+                _logger.LogWarning("Failed creating Tebex Cart for user {Username}", user.UserName);
+
             return Ok(new { linkUserCart = linkUser });
         }
 

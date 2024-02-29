@@ -20,7 +20,7 @@
         {
             get
             {
-                return LockoutEnd < DateTime.Now;
+                return LockoutEnd > DateTime.Now;
             }
             private set { }
         }
@@ -31,7 +31,7 @@
         {
             get
             {
-                return BanishmentEnd < DateTime.Now;
+                return BanishmentEnd > DateTime.Now;
             }
             private set { }
         }

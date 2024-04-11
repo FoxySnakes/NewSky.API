@@ -16,6 +16,13 @@ public class PermissionAttribute : Attribute, IAsyncActionFilter
     {
         var userService = context.HttpContext.RequestServices.GetRequiredService<IUserService>();
         var user = await userService.GetCurrentUserAsync(includePermissions: true);
+
+        if(user == null)
+        {
+            context.Result = new ForbidResult();
+            return;
+        }
+
         var hasPermission = userService.HasPermission(user, _permissionName);
         if (!hasPermission)
         {

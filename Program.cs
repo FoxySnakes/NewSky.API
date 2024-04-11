@@ -6,6 +6,7 @@ using NewSky.API.Models.Db;
 using NewSky.API.Services;
 using NewSky.API.Services.Interface;
 using Serilog;
+using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,7 @@ var logger = new LoggerConfiguration()
     .WriteTo.File($"Logs/NewSky_logs-{DateTime.Now:yyyy-MM-dd}.txt", 
                   rollingInterval:RollingInterval.Day)
     .MinimumLevel.Warning()
+    .Filter.ByExcluding(e => e.Properties.TryGetValue("SourceContext", out var value) && value.ToString().StartsWith("Microsoft.Extensions.Logging"))
     .CreateLogger();
 
 builder.Logging.ClearProviders();

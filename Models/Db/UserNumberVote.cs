@@ -1,6 +1,6 @@
 ﻿namespace NewSky.API.Models.Db
 {
-    public class UserNumberVote : EntityBase
+    public class UserNumberVote : EntityBaseWithId
     {
         public string Username { get; set; }
         public int Votes { get; set; }

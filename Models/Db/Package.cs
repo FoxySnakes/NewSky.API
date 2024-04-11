@@ -1,6 +1,6 @@
 ﻿namespace NewSky.API.Models.Db
 {
-    public class Package : EntityBase
+    public class Package : EntityBaseWithId
     {
         public long TebexId { get; set; }
 

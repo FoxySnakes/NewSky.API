@@ -77,8 +77,7 @@ namespace NewSky.API.Data
 
             // Vote Reward
             modelBuilder.Entity<VoteReward>()
-                .HasIndex(x => x.Position)
-                .IsUnique();
+                .HasKey(x => x.Position);
 
             // User Package
 
@@ -107,6 +106,11 @@ namespace NewSky.API.Data
 
             modelBuilder.Entity<Package>()
                 .HasIndex(x => x.TebexId)
+                .IsUnique();
+
+            // AppSetting
+            modelBuilder.Entity<AppSetting>()
+                .HasIndex(x => x.Name)
                 .IsUnique();
 
             SeedData(modelBuilder);
@@ -469,6 +473,60 @@ namespace NewSky.API.Data
                         PermissionId = -14,
                         IsEditable = false,
                         HasPermission = true
+                    }
+                });
+
+            // AppSetting
+            modelBuilder.Entity<AppSetting>()
+                .HasData(new List<AppSetting>()
+                {
+                    new AppSetting
+                    {
+                        Id = 1,
+                        Name = nameof(AppSettingDefault.DiscordUrl),
+                        Value = AppSettingDefault.DiscordUrl,
+                    },
+                    new AppSetting
+                    {
+                        Id = 2,
+                        Name = nameof(AppSettingDefault.InstagramUrl),
+                        Value = AppSettingDefault.InstagramUrl,
+                    },
+                    new AppSetting
+                    {
+                        Id = 3,
+                        Name = nameof(AppSettingDefault.YoutubeUrl),
+                        Value = AppSettingDefault.YoutubeUrl,
+                    },
+                    new AppSetting
+                    {
+                        Id = 4,
+                        Name = nameof(AppSettingDefault.TwitterUrl),
+                        Value = AppSettingDefault.TwitterUrl,
+                    },
+                    new AppSetting
+                    {
+                        Id = 5,
+                        Name = nameof(AppSettingDefault.TikTokUrl),
+                        Value = AppSettingDefault.TikTokUrl,
+                    },
+                    new AppSetting
+                    {
+                        Id = 6,
+                        Name = nameof(AppSettingDefault.WebStoreIdentifier),
+                        Value = AppSettingDefault.WebStoreIdentifier,
+                    },
+                    new AppSetting
+                    {
+                        Id = 7,
+                        Name = nameof(AppSettingDefault.XTebexSecret),
+                        Value = AppSettingDefault.XTebexSecret,
+                    },
+                    new AppSetting
+                    {
+                        Id = 8,
+                        Name = nameof(AppSettingDefault.ServerIp),
+                        Value = AppSettingDefault.ServerIp,
                     }
                 });
         }

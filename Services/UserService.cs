@@ -79,7 +79,7 @@ namespace NewSky.API.Services
             return new BaseResult() { Errors = resultUpdate.Errors.Select(x => x.Message).ToList() };
         }
 
-        public async Task<User> GetUserByUuid(string uuid, bool includesPackages = false, bool includeRoles = false, bool includePermissions = false)
+        public async Task<User> GetUserByUuidAsync(string uuid, bool includesPackages = false, bool includeRoles = false, bool includePermissions = false)
         {
             var userQuery = QueryUser(includesPackages, includeRoles, includePermissions);
 
@@ -107,7 +107,7 @@ namespace NewSky.API.Services
             var httpContext = _httpContextAccessor.HttpContext;
             var userIp = httpContext.Connection.RemoteIpAddress?.ToString();
 #if DEBUG
-            userIp = "91.173.177.105";
+            userIp = "37.171.193.207";
 #endif
             return userIp;
         }

@@ -29,7 +29,14 @@ namespace NewSky.API.Controllers
             return Ok(rolesNames);
         }
 
-        [HttpPut("create")]
+        [HttpGet("pagined")]
+        public async Task<IActionResult> GetRolesPaginedAsync([FromQuery] PaginationFilterParamsDto paginationFilterParams)
+        {
+            var rolesPagined = await _roleService.GetRolesPaginedAsync(paginationFilterParams);
+            return Ok(rolesPagined);
+        }
+
+        [HttpPost("create")]
         [Permission(PermissionName.CreateRole)]
         public async Task<IActionResult> CreateRoleAsync(RoleDto roleDto)
         {
@@ -42,7 +49,7 @@ namespace NewSky.API.Controllers
             return Ok(resultCreation);
         }
 
-        [HttpPatch("update")]
+        [HttpPost("update")]
         [Permission(PermissionName.UpdateRole)]
         public async Task<IActionResult> UpdateRoleAsync(RoleDto roleDto)
         {
@@ -55,7 +62,7 @@ namespace NewSky.API.Controllers
             return Ok(resultUpdate);
         }
 
-        [HttpDelete("delete")]
+        [HttpPost("delete")]
         [Permission(PermissionName.DeleteRole)]
         public async Task<IActionResult> DeleteRoleAsync(string roleName)
         {

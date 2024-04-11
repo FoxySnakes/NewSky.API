@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using NewSky.API.Data;
 using NewSky.API.Middleware;
+using NewSky.API.Models.Db;
 using NewSky.API.Services;
 using NewSky.API.Services.Interface;
 using Serilog;
@@ -55,7 +56,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddDbContext<NewSkyDbContext>(options =>
-options.UseSqlServer(builder.Configuration.GetConnectionString("NewSkyConnectionString")));
+options.UseSqlServer(builder.Configuration.GetConnectionString("NewSkyConnectionString")), ServiceLifetime.Transient, ServiceLifetime.Transient);
 
 var app = builder.Build();
 
@@ -89,4 +90,5 @@ void InstantiateServices(IServiceCollection services)
     services.AddTransient<ITebexService, TebexService>();
     services.AddTransient<IAuthService, AuthService>();
     services.AddTransient<IRoleService, RoleService>();
+    services.AddTransient<IAppSettingService, AppSettingService>();
 }

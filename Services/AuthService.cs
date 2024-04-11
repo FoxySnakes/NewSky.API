@@ -142,7 +142,7 @@ namespace NewSky.API.Services
 
                     if (!updateResult.IsSuccess)
                     {
-                        result.Error = updateResult.Errors.First().ToString();
+                        result.Error = updateResult.Errors.First().Message;
                     }
                 }
                 else
@@ -174,7 +174,7 @@ namespace NewSky.API.Services
 
                     if (!deleteResult.IsSuccess)
                     {
-                        result.Error = deleteResult.Errors.First().ToString();
+                        result.Error = deleteResult.Errors.First().Message;
                     }
                 }
                 else

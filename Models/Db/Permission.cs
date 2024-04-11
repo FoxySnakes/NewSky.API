@@ -2,7 +2,7 @@
 
 namespace NewSky.API.Models.Db
 {
-    public class Permission : EntityBase
+    public class Permission : EntityBaseWithId
     {
         public string Name { get; set; }
 

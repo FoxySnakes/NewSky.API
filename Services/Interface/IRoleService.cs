@@ -7,6 +7,8 @@ namespace NewSky.API.Services.Interface
     public interface IRoleService
     {
         Task<List<Role>> GetRolesAsync();
+
+        Task<PaginedResult<RoleDto>> GetRolesPaginedAsync(PaginationFilterParamsDto paginationFilterParamsDto);
         Task<BaseResult> CreateRoleAsync(Role role, List<PermissionDto> permissions);
         Task<BaseResult> UpdateRoleAsync(Role role, List<PermissionDto> permissions);
         Task<BaseResult> DeleteRoleAsync(string roleName);

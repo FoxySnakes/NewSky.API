@@ -65,15 +65,18 @@ namespace NewSky.API.Controllers
         {
             var result = new BaseResult();
 
-            var resultUpdateUsername = await _userService.UpdateUserUsernameAsync(model.Uuid, model.UserName);
-            if(!resultUpdateUsername.Success)
+            var user = await _userService.GetUserByUuidAsync(model.Uuid, includeRoles: true);
+            if(user.UserName != model.UserName)
             {
-                result.Errors = resultUpdateUsername.Errors;
-                _logger.LogError("Failed changing username from {LastUserName} to {NewUserName}", _userService.GetCurrentUserName(), model.UserName);
-                return Ok(result);
+                var resultUpdateUsername = await _userService.UpdateUserUsernameAsync(model.Uuid, model.UserName);
+                if (!resultUpdateUsername.Success)
+                {
+                    result.Errors = resultUpdateUsername.Errors;
+                    _logger.LogError("Failed changing username from {LastUserName} to {NewUserName}", _userService.GetCurrentUserName(), model.UserName);
+                    return Ok(result);
+                }
             }
 
-            var user = await _userService.GetUserByUuid(model.Uuid, includeRoles: true);
 
             foreach (var role in model.Roles)
             {

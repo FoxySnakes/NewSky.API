@@ -49,10 +49,11 @@ namespace NewSky.API.Data
 
             CreateMap<UserDto, User>();
 
-            CreateMap<RoleDto, Role>();
-
-            CreateMap<Role, RoleDto>().ReverseMap()
+            CreateMap<RoleDto, Role>()
                 .ForMember(dest => dest.Permissions, opt => opt.Ignore());
+
+            CreateMap<Role, RoleDto>()
+                .ForMember(dest => dest.Permissions, opt => opt.MapFrom(src => src.Permissions.Select(x => new PermissionDto { Name = x.Permission.Name, HasPermission = x.HasPermission})));
 
             CreateMap<RolePermission, PermissionDto>()
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Permission.Name))

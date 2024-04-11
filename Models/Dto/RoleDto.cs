@@ -6,6 +6,11 @@
 
         public string Description { get; set; }
 
+        public string? Color { get; set; }
+
         public List<PermissionDto> Permissions { get; set; } = new List<PermissionDto>();
+
+        public bool IsDefault { get; set; }
+
     }
 }

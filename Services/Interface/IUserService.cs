@@ -10,7 +10,7 @@ namespace NewSky.API.Services.Interface
         Task<BaseResult> UpdateUserUsernameAsync(string userUuid, string userUsername);
         Task<BaseResult> UpdateUserPunishmentAsync(string username, DateTime? banishmentEnd, DateTime? lockoutEnd);
 
-        Task<User> GetUserByUuid(string uuid, bool includesPackages = false, bool includeRoles = false, bool includePermissions = false);
+        Task<User> GetUserByUuidAsync(string uuid, bool includesPackages = false, bool includeRoles = false, bool includePermissions = false);
         Task<User> GetCurrentUserAsync(bool includePackages = false, bool includeRoles = false, bool includePermissions = false);
         string GetCurrentUserIp();
         string GetCurrentUserName();

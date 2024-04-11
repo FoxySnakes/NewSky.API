@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using NewSky.API.Models.Db;
 using NewSky.API.Models.Dto;
 using NewSky.API.Models.Enums;
+using NewSky.API.Models.Result;
 using NewSky.API.Services.Interface;
 using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
@@ -13,21 +14,24 @@ namespace NewSky.API.Services
     {
         private readonly HttpClient _httpClient;
         private readonly IRepository<UserNumberVote> _userNumberVoteRepository;
+        private readonly IRepository<VoteReward> _voteRewardRepository;
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
 
         public VoteService(HttpClient httpClient,
                            IRepository<UserNumberVote> userNumberVoteRepository,
                            IUserService userService,
-                           IMapper mapper)
+                           IMapper mapper,
+                           IRepository<VoteReward> voteRewardRepository)
         {
             _httpClient = httpClient;
             _userNumberVoteRepository = userNumberVoteRepository;
             _userService = userService;
             _mapper = mapper;
+            _voteRewardRepository = voteRewardRepository;
         }
 
-        public async Task<VoteStatusDto> GetVoteStatus(VoteWebSite voteWebsite, string username)
+        public async Task<VoteStatusDto> GetVoteStatusAsync(VoteWebSite voteWebsite, string username)
         {
             var response = new HttpResponseMessage();
             var content = "";
@@ -75,7 +79,7 @@ namespace NewSky.API.Services
                     content = await response.Content.ReadAsStringAsync();
                     jsonContent = JObject.Parse(content);
 
-                    if (Regex.IsMatch((string)jsonContent["code"], @"^4[0-9]{2}$"))    
+                    if (Regex.IsMatch((string)jsonContent["code"], @"^4[0-9]{2}$"))
                     {
                         voteStatus.TimeLeft = TimeSpan.Zero;
                     }
@@ -88,7 +92,7 @@ namespace NewSky.API.Services
                 default:
                     throw new Exception($"This website isn't supported yet by our API");
             }
-            
+
             return voteStatus;
         }
 
@@ -149,7 +153,7 @@ namespace NewSky.API.Services
                 case VoteWebSite.Top_Serveurs:
                     while (success == false)
                     {
-                        response = await _httpClient.GetAsync($"https://api.top-serveurs.net/v1/votes/check?server_token=TTHSXBP2R3HT&ip={userIp}");
+                        response = await _httpClient.GetAsync($"https://api.top-serveurs.net/v1/votes/check-ip?server_token=TTHSXBP2R3HT&ip={userIp}");
                         content = await response.Content.ReadAsStringAsync();
                         jsonContent = JObject.Parse(content);
 
@@ -185,7 +189,7 @@ namespace NewSky.API.Services
                         Votes = 1
                     });
 
-                    if(result.IsSuccess)
+                    if (result.IsSuccess)
                         success = true;
                 }
                 else
@@ -196,6 +200,154 @@ namespace NewSky.API.Services
             }
 
             return success;
+        }
+
+        public async Task<RankingResult> GetServerRankingAsync(int limit)
+        {
+            var monthlyTop = await _userNumberVoteRepository.Query().Where(x => x.Month == DateTime.Now.Month && x.Year == DateTime.Now.Year)
+                                                            .OrderByDescending(x => x.Votes)
+                                                            .Take(limit)
+                                                            .Select(x => new UserNumberVoteDto
+                                                            {
+                                                                Username = x.Username,
+                                                                MonthlyVotes = x.Votes
+                                                            })
+                                                            .ToListAsync();
+
+            var totalTop = await _userNumberVoteRepository.Query().GroupBy(x => x.Username)
+                                                          .Select(group => new UserNumberVoteDto
+                                                          {
+                                                              Username = group.Key,
+                                                              TotalVotes = group.Sum(x => x.Votes),
+                                                          })
+                                                         .ToListAsync();
+
+            var result = new RankingResult()
+            {
+                MonthlyTop = _mapper.Map<List<UserNumberVoteDto>>(monthlyTop),
+                TotalTop = totalTop
+            };
+            return result;
+        }
+
+        public async Task<UserNumberVoteDto> GetUserRankingAsync(string username)
+        {
+            var ranking = await _userNumberVoteRepository.Query().ToListAsync();
+            var userVotesNumber = ranking.Where(x => x.Username == username);
+            var userRanking = new UserNumberVoteDto() { Username = username };
+            if (userVotesNumber.Any())
+            {
+                var monthlyVotes = userVotesNumber.FirstOrDefault(x => x.Month == DateTime.Now.Month && x.Year == DateTime.Now.Year);
+                var monthlyTop = ranking.Where(x => x.Month == DateTime.Now.Month && x.Year == DateTime.Now.Year)
+                                                     .OrderByDescending(x => x.Votes)
+                                                     .ToList();
+                var totalTop = ranking.GroupBy(x => x.Username)
+                                      .OrderByDescending(group => group.Sum(x => x.Votes))
+                                      .ToList();
+
+                userRanking.MonthlyVotes = monthlyVotes == null ? 0 : monthlyVotes.Votes;
+                userRanking.TotalVotes = userVotesNumber.Sum(x => x.Votes);
+                userRanking.MonthlyPosition = monthlyTop.FindIndex(x => x.Username == username) == -1 ? monthlyTop.Count() + 1 : monthlyTop.FindIndex(x => x.Username == username) + 1;
+                userRanking.TotalPosition = totalTop.FindIndex(x => x.Key == username) == -1 ? totalTop.Count() + 1 : totalTop.FindIndex(group => group.Key == username) + 1;
+            }
+            else
+            {
+                userRanking.MonthlyVotes = 0;
+                userRanking.TotalVotes = 0;
+                userRanking.MonthlyPosition = ranking.Where(x => x.Month == DateTime.Now.Month && x.Year == DateTime.Now.Year).OrderByDescending(x => x.Votes).ToList().Count + 1;
+                userRanking.TotalPosition = ranking.GroupBy(x => x.Username).Count() + 1;
+            }
+
+
+            return userRanking;
+        }
+
+        public async Task<List<VoteRewardDto>> GetVoteRewardsAsync()
+        {
+            var rewards = await _voteRewardRepository.Query().ToListAsync();
+            var rewardsDto = _mapper.Map<List<VoteRewardDto>>(rewards);
+            return rewardsDto;
+        }
+
+        public async Task<BaseResult> UpdateVoteRewardsAsync(List<VoteRewardDto> rewardsDto)
+        {
+            var rewards = await _voteRewardRepository.Query().ToListAsync();
+            var result = new BaseResult();
+            foreach (var reward in rewardsDto)
+            {
+                var rewardDB = rewards.FirstOrDefault(x => x.Position == reward.Position);
+                if (rewardDB == null)
+                {
+                    var newReward = _mapper.Map<VoteReward>(reward);
+                    var resultCreation = await _voteRewardRepository.CreateAsync(newReward);
+                    if (!resultCreation.IsSuccess)
+                        result.Errors.Add(resultCreation.Errors.First().Message);
+                }
+                else if (!rewardDB.Reward.Equals(reward.Reward))
+                {
+                    rewardDB.Reward = reward.Reward;
+                    var resultUpdate = await _voteRewardRepository.UpdateAsync(rewardDB.Position);
+                    if (!resultUpdate.IsSuccess)
+                        result.Errors.Add(resultUpdate.Errors.First().Message);
+                }
+            }
+            return result;
+        }
+
+        public async Task<PaginedResult<UserNumberVoteDto>> GetMonthVotesAsync(PaginationFilterParamsDto paginationParams)
+        {
+
+            var month = DateTime.Parse(paginationParams.Search).Month;
+            var year = DateTime.Parse(paginationParams.Search).Year;
+            var monthVotes = await _userNumberVoteRepository.Query().Where(x => x.Month == month && x.Year == year)
+                                                            .Select(x => new UserNumberVoteDto
+                                                            {
+                                                                Username = x.Username,
+                                                                MonthlyVotes = x.Votes,
+                                                            })
+                                                            .OrderBy(x => x.MonthlyVotes)
+                                                            .Skip((paginationParams.PageNumber - 1) * paginationParams.PageSize)
+                                                            .Take(paginationParams.PageSize)
+                                                            .ToListAsync();
+
+            var totalCount = await _userNumberVoteRepository.Query()
+                                                            .Where(x => x.Month == month && x.Year == year)
+                                                            .CountAsync();
+
+            return new PaginedResult<UserNumberVoteDto>
+            {
+                Items = monthVotes,
+                TotalCount = totalCount,
+                PageSize = paginationParams.PageSize,
+                PageNumber = paginationParams.PageNumber
+            };
+        }
+
+        public async Task<PaginedResult<UserNumberVoteDto>> GetTotalVotesAsync(PaginationFilterParamsDto paginationParams)
+        {
+            var userNumberVotePagined = new PaginedResult<UserNumberVoteDto>();
+            var totalVotes = await _userNumberVoteRepository.Query().GroupBy(x => x.Username)
+                                                            .Select(x => new UserNumberVoteDto
+                                                            {
+                                                                Username = x.Key,
+                                                                TotalVotes = x.Sum(y => y.Votes)
+                                                            })
+                                                            .OrderBy(x => x.TotalVotes)
+                                                            .Skip((paginationParams.PageNumber - 1) * paginationParams.PageSize)
+                                                            .Take(paginationParams.PageSize)
+                                                            .ToListAsync();
+
+            var totalCount = await _userNumberVoteRepository.Query()
+                                                .GroupBy(x => x.Username)
+                                                .CountAsync();
+
+            return new PaginedResult<UserNumberVoteDto>
+            {
+                Items = totalVotes,
+                TotalCount = totalCount,
+                PageSize = paginationParams.PageSize,
+                PageNumber = paginationParams.PageNumber
+            };
         }
     }
 }

@@ -2,11 +2,13 @@
 
 namespace NewSky.API.Models.Db
 {
-    public class Role : EntityBase
+    public class Role : EntityBaseWithId
     {
         public string Name { get; set; }
 
         public string Description { get; set; }
+
+        public string? Color { get; set; }
 
         public List<RolePermission> Permissions { get; set; } = new List<RolePermission>();
 

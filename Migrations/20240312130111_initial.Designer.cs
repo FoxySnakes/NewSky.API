@@ -12,8 +12,8 @@ using NewSky.API.Data;
 namespace NewSky.API.Migrations
 {
     [DbContext(typeof(NewSkyDbContext))]
-    [Migration("20240128172650_add-permission-role-access")]
-    partial class addpermissionroleaccess
+    [Migration("20240312130111_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,80 @@ namespace NewSky.API.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("NewSky.API.Models.Db.AppSetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("AppSetting");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "DiscordUrl",
+                            Value = ""
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "InstagramUrl",
+                            Value = ""
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "YoutubeUrl",
+                            Value = ""
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "TwitterUrl",
+                            Value = ""
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "TikTokUrl",
+                            Value = ""
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Name = "WebStoreIdentifier",
+                            Value = "q9p1-a1dc8b36df104edf3ec62d84d3851a78ef5dcf51"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Name = "XTebexSecret",
+                            Value = "3421979d0b799fe1733ce64ad591b28d3bc86b77"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Name = "ServerIp",
+                            Value = ""
+                        });
+                });
 
             modelBuilder.Entity("NewSky.API.Models.Db.Package", b =>
                 {
@@ -613,22 +687,14 @@ namespace NewSky.API.Migrations
 
             modelBuilder.Entity("NewSky.API.Models.Db.VoteReward", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
                     b.Property<int>("Position")
                         .HasColumnType("int");
 
-                    b.Property<int>("Reward")
-                        .HasColumnType("int");
+                    b.Property<string>("Reward")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("Position")
-                        .IsUnique();
+                    b.HasKey("Position");
 
                     b.ToTable("VoteReward");
                 });

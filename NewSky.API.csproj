@@ -4,6 +4,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>False</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,6 +25,16 @@
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+	  
+	<PackageReference Include="System.Collections" Version="4.3.0" />
+	<PackageReference Include="System.Diagnostics.Debug" Version="4.3.0" />
+	  <PackageReference Include="System.IO.FileSystem.Primitives" Version="4.3.0" />
+	  <PackageReference Include="System.Runtime.Extensions" Version="4.3.0" />
+	  <PackageReference Include="System.Runtime.Handles" Version="4.3.0" />
+	  <PackageReference Include="System.Diagnostics.Debug" Version="4.3.0" />
+	  <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
+	  <PackageReference Include="System.Text.Encoding.Extensions" Version="4.3.0" />
+	  <PackageReference Include="System.Threading" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>

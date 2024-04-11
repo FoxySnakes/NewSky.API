@@ -1,6 +1,6 @@
 ﻿namespace NewSky.API.Models.Db
 {
-    public class User : EntityBase
+    public class User : EntityBaseWithId
     {
         public string UserName { get; set; }
 
@@ -20,7 +20,7 @@
         {
             get
             {
-                return LockoutEnd < DateTime.Now;
+                return LockoutEnd > DateTime.Now;
             }
             private set { }
         }
@@ -31,7 +31,7 @@
         {
             get
             {
-                return BanishmentEnd < DateTime.Now;
+                return BanishmentEnd > DateTime.Now;
             }
             private set { }
         }

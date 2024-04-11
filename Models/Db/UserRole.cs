@@ -1,6 +1,6 @@
 ﻿namespace NewSky.API.Models.Db
 {
-    public class UserRole : EntityBase
+    public class UserRole : EntityBaseWithId
     {
         public int UserId { get; set; }
 

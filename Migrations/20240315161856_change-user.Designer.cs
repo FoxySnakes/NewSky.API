@@ -12,8 +12,8 @@ using NewSky.API.Data;
 namespace NewSky.API.Migrations
 {
     [DbContext(typeof(NewSkyDbContext))]
-    [Migration("20240121143401_remove-asp-net-identity")]
-    partial class removeaspnetidentity
+    [Migration("20240315161856_change-user")]
+    partial class changeuser
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,80 @@ namespace NewSky.API.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("NewSky.API.Models.Db.AppSetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("AppSetting");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "DiscordUrl",
+                            Value = ""
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "InstagramUrl",
+                            Value = ""
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "YoutubeUrl",
+                            Value = ""
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "TwitterUrl",
+                            Value = ""
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "TikTokUrl",
+                            Value = ""
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Name = "WebStoreIdentifier",
+                            Value = "q9p1-a1dc8b36df104edf3ec62d84d3851a78ef5dcf51"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Name = "XTebexSecret",
+                            Value = "3421979d0b799fe1733ce64ad591b28d3bc86b77"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Name = "ServerIp",
+                            Value = ""
+                        });
+                });
 
             modelBuilder.Entity("NewSky.API.Models.Db.Package", b =>
                 {
@@ -88,93 +162,87 @@ namespace NewSky.API.Migrations
                     b.HasData(
                         new
                         {
-                            Id = 1,
+                            Id = -1,
                             Description = "Accès au panel admin du site",
                             Name = "access:admin-panel"
                         },
                         new
                         {
-                            Id = 2,
+                            Id = -2,
                             Description = "Accès à la vue du dashboard sur le panel admin",
                             Name = "access:admin-panel_dashboard"
                         },
                         new
                         {
-                            Id = 3,
+                            Id = -3,
                             Description = "Accès à la vue des ventes sur le panel admin",
                             Name = "access:admin-panel_sales"
                         },
                         new
                         {
-                            Id = 4,
+                            Id = -4,
                             Description = "Accès à la vue des utilisateurs sur le panel admin",
                             Name = "access:admin-panel_users"
                         },
                         new
                         {
-                            Id = 5,
+                            Id = -5,
                             Description = "Accès à la vue des votes sur le panel admin",
                             Name = "access:admin-panel_votes"
                         },
                         new
                         {
-                            Id = 6,
+                            Id = -6,
                             Description = "Accès à la vue des paramètres généraux",
                             Name = "access:admin-panel_general-settings"
                         },
                         new
                         {
-                            Id = 7,
+                            Id = -7,
                             Description = "Créer un Rôle",
                             Name = "create:role"
                         },
                         new
                         {
-                            Id = 8,
-                            Description = "Modifier les permissions d'un utilisateur",
-                            Name = "update:user_permissions"
+                            Id = -8,
+                            Description = "Modifier les rôles et nom d'utilisateur d'un utilisateur",
+                            Name = "update:user_informations"
                         },
                         new
                         {
-                            Id = 9,
-                            Description = "Modifier le pseudo d'un utilisateur",
-                            Name = "update:user_username"
+                            Id = -9,
+                            Description = "Modifier la sanction de l'utilisateur",
+                            Name = "update:user_punishment"
                         },
                         new
                         {
-                            Id = 10,
-                            Description = "Gérer l'état d'un compte utilisateur",
-                            Name = "update:user_status"
-                        },
-                        new
-                        {
-                            Id = 11,
-                            Description = "Gérer le panier de l'utilisateur authentifié",
-                            Name = "update:user_cart"
-                        },
-                        new
-                        {
-                            Id = 12,
+                            Id = -10,
                             Description = "Modifier les paramètres généraux du site",
                             Name = "update:general-settings"
                         },
                         new
                         {
-                            Id = 13,
+                            Id = -11,
                             Description = "Modifier le rôle d'un utilisateur",
                             Name = "update:user_role"
                         },
                         new
                         {
-                            Id = 14,
+                            Id = -12,
                             Description = "Modifier un rôle",
                             Name = "update:role"
                         },
                         new
                         {
-                            Id = 15,
+                            Id = -13,
                             Description = "Supprimer un rôle",
                             Name = "delete:role"
+                        },
+                        new
+                        {
+                            Id = -14,
+                            Description = "Accès à la vue des rôles sur le panel admin",
+                            Name = "access:admin-panel_roles"
                         });
                 });
 
@@ -185,6 +253,9 @@ namespace NewSky.API.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Color")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -260,250 +331,226 @@ namespace NewSky.API.Migrations
                     b.HasData(
                         new
                         {
-                            Id = -1,
+                            Id = -50,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 11,
-                            RoleId = -1
-                        },
-                        new
-                        {
-                            Id = -2,
-                            HasPermission = true,
-                            IsEditable = false,
-                            PermissionId = 1,
+                            PermissionId = -1,
                             RoleId = -2
                         },
                         new
                         {
-                            Id = -3,
+                            Id = -51,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 2,
+                            PermissionId = -2,
                             RoleId = -2
                         },
                         new
                         {
-                            Id = -4,
+                            Id = -52,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 3,
+                            PermissionId = -3,
                             RoleId = -2
                         },
                         new
                         {
-                            Id = -5,
+                            Id = -53,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 4,
+                            PermissionId = -4,
                             RoleId = -2
                         },
                         new
                         {
-                            Id = -6,
+                            Id = -54,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 5,
+                            PermissionId = -5,
                             RoleId = -2
                         },
                         new
                         {
-                            Id = -7,
+                            Id = -55,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 6,
+                            PermissionId = -6,
                             RoleId = -2
                         },
                         new
                         {
-                            Id = -8,
+                            Id = -56,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 7,
+                            PermissionId = -7,
                             RoleId = -2
                         },
                         new
                         {
-                            Id = -9,
+                            Id = -57,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 8,
+                            PermissionId = -8,
                             RoleId = -2
                         },
                         new
                         {
-                            Id = -10,
+                            Id = -58,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 9,
+                            PermissionId = -9,
                             RoleId = -2
                         },
                         new
                         {
-                            Id = -11,
+                            Id = -59,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 10,
+                            PermissionId = -10,
                             RoleId = -2
                         },
                         new
                         {
-                            Id = -12,
+                            Id = -60,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 11,
+                            PermissionId = -11,
                             RoleId = -2
                         },
                         new
                         {
-                            Id = -13,
+                            Id = -61,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 12,
+                            PermissionId = -12,
                             RoleId = -2
                         },
                         new
                         {
-                            Id = -14,
+                            Id = -62,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 13,
+                            PermissionId = -13,
                             RoleId = -2
                         },
                         new
                         {
-                            Id = -15,
+                            Id = -63,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 14,
+                            PermissionId = -14,
                             RoleId = -2
                         },
                         new
                         {
-                            Id = -16,
+                            Id = -100,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 15,
-                            RoleId = -2
-                        },
-                        new
-                        {
-                            Id = -17,
-                            HasPermission = true,
-                            IsEditable = false,
-                            PermissionId = 1,
+                            PermissionId = -1,
                             RoleId = -3
                         },
                         new
                         {
-                            Id = -18,
+                            Id = -101,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 2,
+                            PermissionId = -2,
                             RoleId = -3
                         },
                         new
                         {
-                            Id = -19,
+                            Id = -102,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 3,
+                            PermissionId = -3,
                             RoleId = -3
                         },
                         new
                         {
-                            Id = -20,
+                            Id = -103,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 4,
+                            PermissionId = -4,
                             RoleId = -3
                         },
                         new
                         {
-                            Id = -21,
+                            Id = -104,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 5,
+                            PermissionId = -5,
                             RoleId = -3
                         },
                         new
                         {
-                            Id = -22,
+                            Id = -105,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 6,
+                            PermissionId = -6,
                             RoleId = -3
                         },
                         new
                         {
-                            Id = -23,
+                            Id = -106,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 7,
+                            PermissionId = -7,
                             RoleId = -3
                         },
                         new
                         {
-                            Id = -24,
+                            Id = -107,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 8,
+                            PermissionId = -8,
                             RoleId = -3
                         },
                         new
                         {
-                            Id = -25,
+                            Id = -108,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 9,
+                            PermissionId = -9,
                             RoleId = -3
                         },
                         new
                         {
-                            Id = -26,
+                            Id = -109,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 10,
+                            PermissionId = -10,
                             RoleId = -3
                         },
                         new
                         {
-                            Id = -27,
+                            Id = -110,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 11,
+                            PermissionId = -11,
                             RoleId = -3
                         },
                         new
                         {
-                            Id = -28,
+                            Id = -111,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 12,
+                            PermissionId = -12,
                             RoleId = -3
                         },
                         new
                         {
-                            Id = -29,
+                            Id = -112,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 13,
+                            PermissionId = -13,
                             RoleId = -3
                         },
                         new
                         {
-                            Id = -30,
+                            Id = -113,
                             HasPermission = true,
                             IsEditable = false,
-                            PermissionId = 14,
-                            RoleId = -3
-                        },
-                        new
-                        {
-                            Id = -31,
-                            HasPermission = true,
-                            IsEditable = false,
-                            PermissionId = 15,
+                            PermissionId = -14,
                             RoleId = -3
                         });
                 });
@@ -519,8 +566,8 @@ namespace NewSky.API.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
-                    b.Property<TimeSpan>("BanishmentEnd")
-                        .HasColumnType("time");
+                    b.Property<DateTime>("BanishmentEnd")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
@@ -535,8 +582,8 @@ namespace NewSky.API.Migrations
                     b.Property<bool>("IsLocked")
                         .HasColumnType("bit");
 
-                    b.Property<TimeSpan>("LockoutEnd")
-                        .HasColumnType("time");
+                    b.Property<DateTime>("LockoutEnd")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -643,22 +690,14 @@ namespace NewSky.API.Migrations
 
             modelBuilder.Entity("NewSky.API.Models.Db.VoteReward", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
                     b.Property<int>("Position")
                         .HasColumnType("int");
 
-                    b.Property<int>("Reward")
-                        .HasColumnType("int");
+                    b.Property<string>("Reward")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("Position")
-                        .IsUnique();
+                    b.HasKey("Position");
 
                     b.ToTable("VoteReward");
                 });

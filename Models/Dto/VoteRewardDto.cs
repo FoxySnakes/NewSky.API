@@ -3,6 +3,6 @@
     public class VoteRewardDto
     {
         public int Position { get; set; }
-        public int Reward { get; set; }
+        public string Reward { get; set; }
     }
 }

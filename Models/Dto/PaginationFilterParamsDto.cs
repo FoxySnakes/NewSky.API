@@ -8,8 +8,8 @@
 
         public int PageNumber { get; set; }
 
-        public string Filter { get; set; }
+        public string? Filter { get; set; }
 
-        public string Direction { get; set; }
+        public string? Direction { get; set; }
     }
 }

@@ -43,7 +43,7 @@ namespace NewSky.API.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("AppSetting");
+                    b.ToTable("AppSetting", (string)null);
 
                     b.HasData(
                         new
@@ -133,7 +133,7 @@ namespace NewSky.API.Migrations
                     b.HasIndex("TebexId")
                         .IsUnique();
 
-                    b.ToTable("Package");
+                    b.ToTable("Package", (string)null);
                 });
 
             modelBuilder.Entity("NewSky.API.Models.Db.Permission", b =>
@@ -154,7 +154,7 @@ namespace NewSky.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Permission");
+                    b.ToTable("Permission", (string)null);
 
                     b.HasData(
                         new
@@ -270,7 +270,7 @@ namespace NewSky.API.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Role");
+                    b.ToTable("Role", (string)null);
 
                     b.HasData(
                         new
@@ -323,7 +323,7 @@ namespace NewSky.API.Migrations
                     b.HasIndex("RoleId", "PermissionId")
                         .IsUnique();
 
-                    b.ToTable("RolePermission");
+                    b.ToTable("RolePermission", (string)null);
 
                     b.HasData(
                         new
@@ -605,7 +605,7 @@ namespace NewSky.API.Migrations
                     b.HasIndex("UserName")
                         .IsUnique();
 
-                    b.ToTable("User");
+                    b.ToTable("User", (string)null);
                 });
 
             modelBuilder.Entity("NewSky.API.Models.Db.UserNumberVote", b =>
@@ -631,7 +631,7 @@ namespace NewSky.API.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserNumberVote");
+                    b.ToTable("UserNumberVote", (string)null);
                 });
 
             modelBuilder.Entity("NewSky.API.Models.Db.UserPackage", b =>
@@ -658,7 +658,7 @@ namespace NewSky.API.Migrations
                     b.HasIndex("UserId", "PackageId")
                         .IsUnique();
 
-                    b.ToTable("UserPackage");
+                    b.ToTable("UserPackage", (string)null);
                 });
 
             modelBuilder.Entity("NewSky.API.Models.Db.UserRole", b =>
@@ -682,7 +682,7 @@ namespace NewSky.API.Migrations
                     b.HasIndex("RoleId", "UserId")
                         .IsUnique();
 
-                    b.ToTable("UserRole");
+                    b.ToTable("UserRole", (string)null);
                 });
 
             modelBuilder.Entity("NewSky.API.Models.Db.VoteReward", b =>
@@ -696,7 +696,7 @@ namespace NewSky.API.Migrations
 
                     b.HasKey("Position");
 
-                    b.ToTable("VoteReward");
+                    b.ToTable("VoteReward", (string)null);
                 });
 
             modelBuilder.Entity("NewSky.API.Models.Db.RolePermission", b =>

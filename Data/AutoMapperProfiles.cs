@@ -26,7 +26,7 @@ namespace NewSky.API.Data
                     {
                         Name = permission.Permission.Name,
                         HasPermission = permission.HasPermission
-                    }))
+                    })).GroupBy(x => x.Name).Select(g => g.OrderBy(p => p.HasPermission).First()).ToList()
                 ))
                 .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.Roles.Select(x => x.Role.Name)))
                 .ForMember(dest => dest.Packages, opt => opt.Ignore())

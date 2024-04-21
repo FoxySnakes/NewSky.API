@@ -25,7 +25,7 @@ namespace NewSky.API.Controllers
         public async Task<IActionResult> GetRolesAsync()
         {
             var roles = await _roleService.GetRolesAsync();
-            var rolesNames = roles.Select(x => x.Name).ToList();  
+            var rolesNames = roles.Select(x => x.Name).ToList();
             return Ok(rolesNames);
         }
 
@@ -64,7 +64,7 @@ namespace NewSky.API.Controllers
 
         [HttpPost("delete")]
         [Permission(PermissionName.DeleteRole)]
-        public async Task<IActionResult> DeleteRoleAsync(string roleName)
+        public async Task<IActionResult> DeleteRoleAsync([FromQuery(Name = "rn")] string roleName)
         {
             var resultDelete = await _roleService.DeleteRoleAsync(roleName);
 

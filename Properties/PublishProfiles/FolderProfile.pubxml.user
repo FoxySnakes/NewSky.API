@@ -4,8 +4,8 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
 -->
 <Project>
   <PropertyGroup>
-    <_PublishTargetUrl>C:\Users\matth\OneDrive\Documents\AFTEC\Projet\NewSky\NewSky.API\bin\Release\net7.0\publish\</_PublishTargetUrl>
-    <History>True|2024-04-11T20:10:59.0354475Z;</History>
+    <_PublishTargetUrl>C:\Users\Administrator\Desktop\Developpement\NewSky.API\bin\Release\net7.0\publish\</_PublishTargetUrl>
+    <History>True|2024-04-14T12:30:25.4812629Z;True|2024-04-14T14:28:40.7649337+02:00;True|2024-04-11T22:10:59.0354475+02:00;</History>
     <LastFailureDetails />
   </PropertyGroup>
 </Project>

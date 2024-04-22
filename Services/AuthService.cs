@@ -49,8 +49,9 @@ namespace NewSky.API.Services
                 }
                 else if (BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
                 {
+                    var userWithPermissionsAndRoles = await _userService.GetUserByUuidAsync(user.UUID, includeRoles: true, includePermissions: true);
                     result.IsSuccess = true;
-                    result.User = _mapper.Map<UserDto>(user);
+                    result.User = _mapper.Map<UserDto>(userWithPermissionsAndRoles);
                     result.Token = _securityService.GenerateToken(user);
                 }
                 else
@@ -97,12 +98,9 @@ namespace NewSky.API.Services
             if (resultCreation.IsSuccess)
             {
                 await _roleService.AddRoleOnUserAsync(newUser, DefaultRole.Player);
-                result.User = new UserDto()
-                {
-                    UserName = newUser.UserName,
-                    UUID = newUser.UUID,
-                    Email = newUser.Email,
-                };
+                var userWithPermissionsAndRoles = await _userService.GetUserByUuidAsync(newUser.UUID, includeRoles: true, includePermissions: true);
+                result.User = _mapper.Map<UserDto>(userWithPermissionsAndRoles);
+
                 result.Token = _securityService.GenerateToken(newUser);
             }
 

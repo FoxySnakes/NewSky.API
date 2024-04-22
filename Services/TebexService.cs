@@ -31,17 +31,12 @@ namespace NewSky.API.Services
 
             _headlessApi = headlessApi;
             _headlessApi.BaseAddress = new Uri("https://headless.tebex.io");
-            _webStoreIdentifier = "q9p1-a1dc8b36df104edf3ec62d84d3851a78ef5dcf51";
+            _webStoreIdentifier = "rrx1-9e82a64dc20135a1c070e4602c5c8176c0e945a0";
 
             _pluginApi = pluginApi;
             _pluginApi.BaseAddress = new Uri("https://plugin.tebex.io");
-            _pluginApi.DefaultRequestHeaders.Add("X-Tebex-Secret", "3421979d0b799fe1733ce64ad591b28d3bc86b77");
-
-#if DEBUG
-            _webStoreIdentifier = "rrx1-9e82a64dc20135a1c070e4602c5c8176c0e945a0";
-            _pluginApi.DefaultRequestHeaders.Remove("X-Tebex-Secret");
             _pluginApi.DefaultRequestHeaders.Add("X-Tebex-Secret", "8d6f1ee36dc2ee4ff3221c2a14b32221d8be2332");
-#endif
+
         }
 
         public async Task<List<TebexCategoryDto>> GetCategoriesAsync(bool withPackages)

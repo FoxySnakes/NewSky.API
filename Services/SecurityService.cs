@@ -1,5 +1,7 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using NewSky.API.Models.Db;
+using NewSky.API.Models.Result;
 using NewSky.API.Services.Interface;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -63,6 +65,9 @@ namespace NewSky.API.Services
         {
             return BCrypt.Net.BCrypt.HashPassword(password, BCrypt.Net.BCrypt.GenerateSalt(12));
         }
+
+        
+
 
     }
 }

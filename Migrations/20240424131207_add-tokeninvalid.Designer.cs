@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NewSky.API.Data;
 
@@ -11,9 +12,11 @@ using NewSky.API.Data;
 namespace NewSky.API.Migrations
 {
     [DbContext(typeof(NewSkyDbContext))]
-    partial class NewSkyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240424131207_add-tokeninvalid")]
+    partial class addtokeninvalid
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

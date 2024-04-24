@@ -87,6 +87,7 @@ app.Run();
 void InstantiateServices(IServiceCollection services)
 {
     services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+    services.AddTransient<ITokenService, TokenService>();
     services.AddTransient<IVoteService, VoteService>();
     services.AddTransient<IUserService, UserService>();
     services.AddTransient<ISecurityService, SecurityService>();

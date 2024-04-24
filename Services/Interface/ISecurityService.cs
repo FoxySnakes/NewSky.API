@@ -1,4 +1,5 @@
 ﻿using NewSky.API.Models.Db;
+using NewSky.API.Models.Result;
 
 namespace NewSky.API.Services.Interface
 {
@@ -7,5 +8,6 @@ namespace NewSky.API.Services.Interface
         string GenerateToken(User user);
         bool IsTokenValid(string token);
         string HashPassword(string password);
+
     }
 }

@@ -113,6 +113,11 @@ namespace NewSky.API.Data
                 .HasIndex(x => x.Name)
                 .IsUnique();
 
+            // Token Invalid
+            modelBuilder.Entity<TokenInvalid>()
+                .HasIndex(x => x.Value)
+                .IsUnique();
+
             SeedData(modelBuilder);
         }
 

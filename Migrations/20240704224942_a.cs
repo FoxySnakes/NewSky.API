@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace NewSky.API.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class a : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -68,11 +68,25 @@ namespace NewSky.API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Color = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsDefault = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Role", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TokenInvalid",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Value = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TokenInvalid", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -244,12 +258,12 @@ namespace NewSky.API.Migrations
 
             migrationBuilder.InsertData(
                 table: "Role",
-                columns: new[] { "Id", "Description", "IsDefault", "Name" },
+                columns: new[] { "Id", "Color", "Description", "IsDefault", "Name" },
                 values: new object[,]
                 {
-                    { -3, "Développeur du site", true, "Développeur du site" },
-                    { -2, "Responsable du serveur", true, "Fondateur" },
-                    { -1, "Utilisateur authentifié", true, "Joueur" }
+                    { -3, null, "Développeur du site", true, "Développeur du site" },
+                    { -2, null, "Responsable du serveur", true, "Fondateur" },
+                    { -1, null, "Utilisateur authentifié", true, "Joueur" }
                 });
 
             migrationBuilder.InsertData(
@@ -317,6 +331,12 @@ namespace NewSky.API.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_TokenInvalid_Value",
+                table: "TokenInvalid",
+                column: "Value",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_User_Email",
                 table: "User",
                 column: "Email",
@@ -365,6 +385,9 @@ namespace NewSky.API.Migrations
 
             migrationBuilder.DropTable(
                 name: "RolePermission");
+
+            migrationBuilder.DropTable(
+                name: "TokenInvalid");
 
             migrationBuilder.DropTable(
                 name: "UserNumberVote");

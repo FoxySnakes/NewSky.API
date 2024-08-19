@@ -107,7 +107,7 @@ namespace NewSky.API.Services
             var httpContext = _httpContextAccessor.HttpContext;
             var userIp = httpContext.Connection.RemoteIpAddress?.ToString();
 #if DEBUG
-            userIp = "37.171.193.207";
+            userIp = "37.166.49.156";
 #endif
             return userIp;
         }

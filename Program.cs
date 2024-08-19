@@ -10,15 +10,15 @@ using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var logger = new LoggerConfiguration()
-    .WriteTo.File($"Logs/NewSky_logs-{DateTime.Now:yyyy-MM-dd}.txt", 
-                  rollingInterval:RollingInterval.Day)
-    .MinimumLevel.Warning()
-    .Filter.ByExcluding(e => e.Properties.TryGetValue("SourceContext", out var value) && value.ToString().StartsWith("Microsoft.Extensions.Logging"))
-    .CreateLogger();
+//var logger = new LoggerConfiguration()
+//    .WriteTo.File($"Logs/NewSky_logs-{DateTime.Now:yyyy-MM-dd}.txt", 
+//                  rollingInterval:RollingInterval.Day)
+//    .MinimumLevel.Warning()
+//    .Filter.ByExcluding(e => e.Properties.TryGetValue("SourceContext", out var value) && value.ToString().StartsWith("Microsoft.Extensions.Logging"))
+//    .CreateLogger();
 
-builder.Logging.ClearProviders();
-builder.Logging.AddSerilog(logger);
+//builder.Logging.ClearProviders();
+//builder.Logging.AddSerilog(logger);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -38,10 +38,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin", builder =>
     {
-        //builder.WithOrigins("https://newsky.fr").AllowAnyMethod().AllowAnyHeader();
-#if DEBUG
         builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-#endif
     });
 });
 
@@ -57,17 +54,16 @@ builder.Services.ConfigureApplicationCookie(options =>
 #endif
 });
 
-builder.Services.AddDbContext<NewSkyDbContext>(options =>
-options.UseSqlServer(builder.Configuration.GetConnectionString("NewSkyConnectionString")), ServiceLifetime.Transient, ServiceLifetime.Transient);
+//builder.Services.AddDbContext<NewSkyDbContext>(options =>
+//options.UseSqlServer(builder.Configuration.GetConnectionString("NewSkyConnectionString")), ServiceLifetime.Transient, ServiceLifetime.Transient);
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+
     app.UseSwagger();
     app.UseSwaggerUI();
-}
+
 
 app.UseMiddleware<AuthMiddleware>();
 
@@ -86,13 +82,13 @@ app.Run();
 
 void InstantiateServices(IServiceCollection services)
 {
-    services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-    services.AddTransient<ITokenService, TokenService>();
-    services.AddTransient<IVoteService, VoteService>();
-    services.AddTransient<IUserService, UserService>();
+    //services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+    //services.AddTransient<ITokenService, TokenService>();
+    //services.AddTransient<IVoteService, VoteService>();
+    //services.AddTransient<IUserService, UserService>();
     services.AddTransient<ISecurityService, SecurityService>();
-    services.AddTransient<ITebexService, TebexService>();
-    services.AddTransient<IAuthService, AuthService>();
-    services.AddTransient<IRoleService, RoleService>();
-    services.AddTransient<IAppSettingService, AppSettingService>();
+    //services.AddTransient<ITebexService, TebexService>();
+    //services.AddTransient<IAuthService, AuthService>();
+    //services.AddTransient<IRoleService, RoleService>();
+    //services.AddTransient<IAppSettingService, AppSettingService>();
 }
